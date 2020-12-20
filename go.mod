@@ -1,0 +1,10 @@
+module github.com/hjertnes/roam
+
+go 1.15
+
+require (
+	github.com/ericaro/frontmatter v0.0.0-20200210094738-46863cd917e2
+	github.com/hjertnes/utils v0.0.0-20201219191833-21741796af71
+	github.com/jackc/pgx/v4 v4.10.1
+	gopkg.in/yaml.v2 v2.4.0
+)

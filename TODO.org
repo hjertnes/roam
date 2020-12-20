@@ -1,0 +1,55 @@
+* Plan to replace org-roam with something of my own
+I feel more and more like I want to replace org-roam with something of my own
+** VSCode Regex
+^(title: ?.+)\n(---)\n
+$1\nprivate: false\n$2\n
+** Features
+- Terminal UI
+- And a more automation friendly cli
+- Templates
+- Yaml config
+- Postgres cache
+- Publish support; with a golang template for UI (use something like the index builder thing I made)
+- Templates with variables like %TODAY%
+- Sync job that runs in the background: two modes, one that only updates those with newer filesystem meta data than in database, and one that updates everything
+- Use markdown since it has better support by golang libs
+- frontmatter for meta data like title and tags (custom tags) also set all the folders between root and the file as tags, but not in the front matter (divide them in the database, path tags, and custom tags)
+** Incremental update
+** Links
+Match anything in the form of [[link]] or [[link][name]]
+
+Unless the link starts with http:// or https:// it will be replaces with [[/link/path/relative/to/root]]
+
+Files that don't resolve to a file will not be changed. If you write [[bla]] the fixer will try to resolve it to a note
+
+There will be a doctor command that deal with this
+
+defaults to dry run, only shows what it would have done and warns about issues and links it can't resolve
+--write to write the changes back to the note
+--interactive to select where the link should go with similar UI to find file
+
+** Terminal UI
+- Find note
+- Create note
+- Create template
+- Edit template
+- Edit config
+- Init: sets up for first time
+- Upgrade: migrates config
+
+** v.0.0.1
++ init
++ migrate
++ edit config
++ sync
+** v0.0.2
+- find note
+- fix links (dry-run and write)
+
+** Script to move from org til md
+find . -name "*.org" -print0 | while read -d $'\0' file
+do
+    echo "$file"
+    pandoc "$file" -s -o "${file/.org/.md}"
+    rm "$file"
+done
