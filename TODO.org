@@ -37,12 +37,9 @@ defaults to dry run, only shows what it would have done and warns about issues a
 - Init: sets up for first time
 - Upgrade: migrates config
 
-** v.0.0.1
-+ init
-+ migrate
-+ edit config
-+ sync
 ** v0.0.2
+- Move shit from main.go
+** v0.0.3
 - find note
 - fix links (dry-run and write)
 
