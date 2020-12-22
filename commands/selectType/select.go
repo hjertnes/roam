@@ -1,37 +1,28 @@
-package findSelect
+package selectType
 
 import (
 	"fmt"
-	"github.com/ericaro/frontmatter"
-	"github.com/hjertnes/roam/dal"
 	"github.com/hjertnes/roam/models"
-	"github.com/hjertnes/roam/utils"
-	"io/ioutil"
 	"os"
-	"os/exec"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/glamour"
 )
 
 var (
-	choices = []string{}
+	choices = []models.TemplateFile{}
 )
 
 type model struct {
 	cursor int
-	choice chan string
+	choice chan models.TemplateFile
 }
 
-func Run(matches []string, write bool, dal *dal.Dal) {
+func Run(matches []models.TemplateFile) models.TemplateFile{
 	choices = matches
-	result := make(chan string, 1)
+	result := make(chan models.TemplateFile, 1)
 
-	if len(matches)== 0{
-		fmt.Println("No matches")
-		return
-	} else if len(matches) == 1{
+	if len(matches) == 1{
 		result <- matches[0]
 	} else {
 		p := tea.NewProgram(model{cursor: 0, choice: result})
@@ -41,34 +32,10 @@ func Run(matches []string, write bool, dal *dal.Dal) {
 		}
 	}
 
-
-	if r := <-result; r != "" {
-		if write {
-			editor := utils.GetEditor()
-			cmd := exec.Command(editor, r)
-
-			err := cmd.Run()
-			utils.ErrorHandler(err)
-
-			err = dal.SetOpened(r)
-			utils.ErrorHandler(err)
-		} else {
-			data, err := ioutil.ReadFile(r)
-			utils.ErrorHandler(err)
-			metadata := models.Fm{}
-			err = frontmatter.Unmarshal(data, &metadata)
-			r, _ := glamour.NewTermRenderer(
-				glamour.WithAutoStyle(),
-			)
-
-			out, err := r.Render(fmt.Sprintf("# %s\n%s", metadata.Title, metadata.Content))
-			fmt.Print(out)
-		}
-
-	}
+	return <-result
 }
 
-func initialModel(choice chan string) model {
+func initialModel(choice chan models.TemplateFile) model {
 	return model{cursor: 0, choice: choice}
 }
 
@@ -118,7 +85,7 @@ func (m model) View() string {
 		} else {
 			s.WriteString("( ) ")
 		}
-		s.WriteString(choices[i])
+		s.WriteString(choices[i].Title)
 		s.WriteString("\n")
 	}
 	s.WriteString("\n(press q to quit)\n")

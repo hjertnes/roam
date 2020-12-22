@@ -1,9 +1,18 @@
 package models
 
+type TemplateFile struct {
+	Filename string
+	Title string
+}
+
 type Configuration struct {
+	TimeFormat string
+	DateFormat string
+	DateTimeFormat string
 	DatabaseConnectionString string
 	DefaultFileExtension string
 	Version int
+	Templates []TemplateFile
 }
 
 type Fm struct {

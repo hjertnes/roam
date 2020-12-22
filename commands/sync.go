@@ -40,7 +40,6 @@ func Sync(path string){
 		metadata := models.Fm{}
 		err = frontmatter.Unmarshal(data, &metadata)
 		if err != nil{
-			fmt.Println("Here?")
 			return err
 		}
 		exist, err := dal.Exists(path)

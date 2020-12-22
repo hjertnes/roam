@@ -1,8 +1,8 @@
 * Plan to replace org-roam with something of my own
 I feel more and more like I want to replace org-roam with something of my own
 ** VSCode Regex
-^(title: ?.+)\n(---)\n
-$1\nprivate: false\n$2\n
+
+
 ** Features
 - Terminal UI
 - And a more automation friendly cli
@@ -37,9 +37,11 @@ defaults to dry run, only shows what it would have done and warns about issues a
 - Init: sets up for first time
 - Upgrade: migrates config
 
-** v0.0.3
-- find note
-- create note
+** v0.0.5
+- Stats
+
+** v0.0.6
+- Cleanup
 
 ** Script to move from org til md
 find . -name "*.org" -print0 | while read -d $'\0' file

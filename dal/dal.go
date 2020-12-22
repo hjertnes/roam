@@ -61,6 +61,19 @@ func (d *Dal) Update(path, title, content string) error{
 	return nil
 }
 
+func (d *Dal) SetOpened(path string) error{
+
+	_, err := d.conn.Exec(
+		d.ctx,
+		`update files set opened_at=timezone('utc', now()) where path=$1`,
+		path)
+	if err != nil{
+		return err
+	}
+
+	return nil
+}
+
 func (d *Dal)Find(search string) ([]models.File, error){
 	result := make([]models.File, 0)
 	res, err := d.conn.Query(d.ctx, `SELECT path, title FROM files WHERE title_tokens @@ to_tsquery($1);`, search)
