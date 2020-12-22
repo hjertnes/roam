@@ -26,6 +26,9 @@ func main(){
 	case "sync":
 		commands.Sync(path)
 		return
+	case "find":
+		commands.Find(path)
+		return
 	default:
 		commands.Help()
 		return

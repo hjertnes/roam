@@ -2,7 +2,9 @@ package dal
 
 import (
 	"context"
+	"github.com/hjertnes/roam/models"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/georgysavva/scany/pgxscan"
 )
 
 // exists
@@ -57,4 +59,18 @@ func (d *Dal) Update(path, title, content string) error{
 	}
 
 	return nil
+}
+
+func (d *Dal)Find(search string) ([]models.File, error){
+	result := make([]models.File, 0)
+	res, err := d.conn.Query(d.ctx, `SELECT path, title FROM files WHERE title_tokens @@ to_tsquery($1);`, search)
+	if err != nil{
+		return result, err
+	}
+	err = pgxscan.ScanAll(&result, res)
+	if err != nil{
+		return result, err
+	}
+
+	return result, nil
 }

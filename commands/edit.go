@@ -7,6 +7,9 @@ import (
 	"os/exec"
 )
 
+
+
+
 func Edit(path string){
 	if len(os.Args) == 2 {
 		Help()

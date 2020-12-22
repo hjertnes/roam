@@ -11,3 +11,8 @@ type Fm struct {
 	Private bool `fm:"private"`
 	Content string `fm:"content"`
 }
+
+type File struct {
+	Title string `db:"title"`
+	Path string `db:"path"`
+}

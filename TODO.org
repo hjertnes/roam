@@ -37,11 +37,9 @@ defaults to dry run, only shows what it would have done and warns about issues a
 - Init: sets up for first time
 - Upgrade: migrates config
 
-** v0.0.2
-- Move shit from main.go
 ** v0.0.3
 - find note
-- fix links (dry-run and write)
+- create note
 
 ** Script to move from org til md
 find . -name "*.org" -print0 | while read -d $'\0' file
