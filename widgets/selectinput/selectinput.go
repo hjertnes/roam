@@ -18,7 +18,7 @@ type model struct {
 func Run(label string, choices []Choice) (*Choice, error){
 	result := make(chan Choice, 1)
 
-	if len(choices)== 0{
+	if len(choices)== 0 {
 		return nil, eris.Wrap(errs.NotFound, "no choices found")
 	} else if len(choices) == 1{
 		result <- choices[0]
@@ -40,7 +40,12 @@ type Choice struct {
 }
 
 func initialModel(label string, choices []Choice, choice chan Choice) model {
-	return model{cursor: 0, choice: choice}
+	return model{
+		label: label,
+		choices: choices,
+		cursor: 0,
+		choice: choice,
+	}
 }
 
 func (m model) Init() tea.Cmd {
@@ -82,7 +87,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	s := strings.Builder{}
 	s.WriteString(m.label)
-	s.WriteString("n\n")
+	s.WriteString("\n")
 
 	for i := 0; i < len(m.choices); i++ {
 		if m.cursor == i {

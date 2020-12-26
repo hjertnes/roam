@@ -41,7 +41,8 @@ func getFile(path string) (string, error){
 	paths := make([]selectinput.Choice, 0)
 
 	for _, r := range result {
-		paths = append(paths, selectinput.Choice{r.Path, r.Path})
+		fmt.Println(r.Path)
+		paths = append(paths, selectinput.Choice{Title: r.Path, Value: r.Path})
 	}
 
 	choice, err := selectinput.Run("Select match", paths)

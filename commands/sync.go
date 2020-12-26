@@ -44,12 +44,9 @@ func Sync(path string) error{
 		if info.IsDir(){
 			return nil
 		}
-
-		data, err := ioutil.ReadFile(path)
-		metadata := models.Fm{}
-		err = frontmatter.Unmarshal(data, &metadata)
+		metadata, err := readfile(path)
 		if err != nil{
-			return eris.Wrap(err, "failed to unmarshal frontmatter")
+			return eris.Wrap(err, "could not read file")
 		}
 		exist, err := dal.Exists(path)
 		if err != nil{
@@ -75,4 +72,15 @@ func Sync(path string) error{
 	}
 
 	return nil
+}
+
+func readfile(path string) (*models.Fm, error){
+	data, err := ioutil.ReadFile(path)
+	metadata := models.Fm{}
+	err = frontmatter.Unmarshal(data, &metadata)
+	if err != nil{
+		return nil, eris.Wrap(err, "failed to unmarshal frontmatter")
+	}
+
+	return &metadata, nil
 }

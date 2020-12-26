@@ -6,6 +6,7 @@ require (
 	github.com/charmbracelet/bubbles v0.7.5
 	github.com/charmbracelet/bubbletea v0.12.2
 	github.com/charmbracelet/glamour v0.2.0
+	github.com/dlclark/regexp2 v1.2.0
 	github.com/ericaro/frontmatter v0.0.0-20200210094738-46863cd917e2
 	github.com/georgysavva/scany v0.2.7
 	github.com/hjertnes/utils v0.0.0-20201219191833-21741796af71

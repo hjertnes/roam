@@ -37,10 +37,10 @@ defaults to dry run, only shows what it would have done and warns about issues a
 - Init: sets up for first time
 - Upgrade: migrates config
 
-** v0.0.7
-- Diagnostics
-- Notes with problematic frontmatter
-- Detect links that don't resolve cleanly
+** Later
+- Interactive mode that will give you a dropdown of options to replace it with and edit file option
+
+
 
 ** Script to move from org til md
 find . -name "*.org" -print0 | while read -d $'\0' file

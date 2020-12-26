@@ -2,11 +2,13 @@ package dal
 
 import (
 	"context"
+	"fmt"
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/hjertnes/roam/models"
 	"github.com/hjertnes/utils"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/georgysavva/scany/pgxscan"
 	"github.com/rotisserie/eris"
+	"strings"
 )
 
 type Dal struct {
@@ -33,6 +35,24 @@ func (d *Dal) Exists(path string) (bool, error){
 	return result, nil
 }
 
+func (d *Dal) GetFiles() ([]string, error){
+	var files []string
+
+	result, err := d.conn.Query(
+		d.ctx,
+		`select path from files`)
+	if err != nil{
+		return files, eris.Wrap(err, "failed to get list of files")
+	}
+
+	err = pgxscan.ScanAll(&files, result)
+	if err != nil{
+		return files, eris.Wrap(err, "could not parse")
+	}
+
+	return files, nil
+}
+
 func (d *Dal) Create(path, title, content string, private bool) error{
 	_, err := d.conn.Exec(
 		d.ctx,
@@ -46,18 +66,10 @@ func (d *Dal) Create(path, title, content string, private bool) error{
 }
 
 func (d *Dal) Delete() error{
-	result, err := d.conn.Query(
-		d.ctx,
-		`select path from files`)
+	files, err := d.GetFiles()
+
 	if err != nil{
 		return eris.Wrap(err, "failed to get list of files")
-	}
-
-	var files []string
-
-	err = pgxscan.ScanAll(&files, result)
-	if err != nil{
-		return err
 	}
 
 	for _, r := range files{
@@ -85,9 +97,36 @@ func (d *Dal) Update(path, title, content string, private bool) error{
 	return nil
 }
 
-func (d *Dal)Find(search string) ([]models.File, error){
+func buildVectorSearch(input string)string{
+	if !strings.Contains(input, " "){
+		return fmt.Sprintf("%s:*", input)
+	}
+	output := make([]string, 0)
+
+	for _,l := range strings.Split(input, " "){
+		output = append(output, fmt.Sprintf("%s:*", l))
+	}
+
+	return strings.Join(output, "&")
+}
+
+func (d *Dal) Find(search string) ([]models.File, error){
 	result := make([]models.File, 0)
-	res, err := d.conn.Query(d.ctx, `SELECT path, title FROM files WHERE title_tokens @@ to_tsquery($1);`, search)
+	res, err := d.conn.Query(d.ctx, `SELECT path, title FROM files WHERE title_tokens @@ to_tsquery($1);`, buildVectorSearch(search))
+	if err != nil{
+		return result, eris.Wrap(err, "failed to run search query")
+	}
+	err = pgxscan.ScanAll(&result, res)
+	if err != nil{
+		return result, eris.Wrap(err, "failed to scan search query")
+	}
+
+	return result, nil
+}
+
+func (d *Dal) FindExact(search string) ([]models.File, error){
+	result := make([]models.File, 0)
+	res, err := d.conn.Query(d.ctx, `SELECT path, title FROM files WHERE title=$1;`, search)
 	if err != nil{
 		return result, eris.Wrap(err, "failed to run search query")
 	}
