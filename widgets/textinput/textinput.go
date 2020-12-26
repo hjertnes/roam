@@ -1,20 +1,22 @@
-package noteTitle
+package textinput
 
 import (
-"fmt"
-"github.com/hjertnes/roam/utils"
-
-"github.com/charmbracelet/bubbles/textinput"
-input "github.com/charmbracelet/bubbles/textinput"
-tea "github.com/charmbracelet/bubbletea"
+	"fmt"
+	"github.com/rotisserie/eris"
+	"github.com/charmbracelet/bubbles/textinput"
+	input "github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
-func Run() (string ,error){
+func Run(placeholder, label string) (string, error){
 	result := make(chan string, 1)
 
-	p := tea.NewProgram(initialModel(result))
+	p := tea.NewProgram(initialModel(result, placeholder, label))
 	err := p.Start()
-	utils.ErrorHandler(err)
+
+	if err != nil{
+		return "", eris.Wrap(err, "textinput failed")
+	}
 
 	if r := <-result; r != "" {
 		return r, nil
@@ -26,19 +28,21 @@ func Run() (string ,error){
 type errMsg error
 
 type model struct {
+	label string
 	data chan string
 	textInput input.Model
 	err       error
 }
 
-func initialModel(data chan string) model {
+func initialModel(data chan string, placeholder, label string) model {
 	inputModel := input.NewModel()
-	inputModel.Placeholder = "Title"
+	inputModel.Placeholder = placeholder
 	inputModel.Focus()
 	inputModel.CharLimit = 156
 	inputModel.Width = 20
 
 	return model{
+		label: label,
 		textInput: inputModel,
 		err:       nil,
 		data: data,
@@ -76,9 +80,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	return fmt.Sprintf(
-		"Title of your new note\n\n%s\n\n%s",
+		"%s\n\n%s\n\n%s",
+		m.label,
 		m.textInput.View(),
 		"(esc to quit)",
 	) + "\n"
 }
-

@@ -15,12 +15,6 @@ func GetPath() string{
 	return utils.ExpandTilde(path)
 }
 
-func ErrorHandler(err error){
-	if err != nil{
-		panic(err)
-	}
-}
-
 func GetEditor() string{
 	editor, isSet := os.LookupEnv("EDITOR")
 

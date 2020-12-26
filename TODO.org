@@ -14,7 +14,7 @@ I feel more and more like I want to replace org-roam with something of my own
 - Sync job that runs in the background: two modes, one that only updates those with newer filesystem meta data than in database, and one that updates everything
 - Use markdown since it has better support by golang libs
 - frontmatter for meta data like title and tags (custom tags) also set all the folders between root and the file as tags, but not in the front matter (divide them in the database, path tags, and custom tags)
-** Incremental update
+
 ** Links
 Match anything in the form of [[link]] or [[link][name]]
 
@@ -37,11 +37,10 @@ defaults to dry run, only shows what it would have done and warns about issues a
 - Init: sets up for first time
 - Upgrade: migrates config
 
-** v0.0.5
-- Stats
-
-** v0.0.6
-- Cleanup
+** v0.0.7
+- Diagnostics
+- Notes with problematic frontmatter
+- Detect links that don't resolve cleanly
 
 ** Script to move from org til md
 find . -name "*.org" -print0 | while read -d $'\0' file

@@ -1,41 +1,45 @@
-package selectType
+package selectinput
 
 import (
-	"fmt"
-	"github.com/hjertnes/roam/models"
-	"os"
+	"github.com/hjertnes/roam/errs"
+	"github.com/rotisserie/eris"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-var (
-	choices = []models.TemplateFile{}
-)
-
 type model struct {
+	choices []Choice
+	label string
 	cursor int
-	choice chan models.TemplateFile
+	choice chan Choice
 }
 
-func Run(matches []models.TemplateFile) models.TemplateFile{
-	choices = matches
-	result := make(chan models.TemplateFile, 1)
+func Run(label string, choices []Choice) (*Choice, error){
+	result := make(chan Choice, 1)
 
-	if len(matches) == 1{
-		result <- matches[0]
+	if len(choices)== 0{
+		return nil, eris.Wrap(errs.NotFound, "no choices found")
+	} else if len(choices) == 1{
+		result <- choices[0]
 	} else {
-		p := tea.NewProgram(model{cursor: 0, choice: result})
+		p := tea.NewProgram(initialModel(label, choices, result))
 		if err := p.Start(); err != nil {
-			fmt.Println("Oh no:", err)
-			os.Exit(1)
+			return nil, err
 		}
 	}
 
-	return <-result
+	r := <-result
+
+	return &r, nil
 }
 
-func initialModel(choice chan models.TemplateFile) model {
+type Choice struct {
+	Title string
+	Value string
+}
+
+func initialModel(label string, choices []Choice, choice chan Choice) model {
 	return model{cursor: 0, choice: choice}
 }
 
@@ -54,19 +58,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "enter":
 			// Send the choice on the channel and exit.
-			m.choice <- choices[m.cursor]
+			m.choice <- m.choices[m.cursor]
 			return m, tea.Quit
 
 		case "down", "j":
 			m.cursor++
-			if m.cursor >= len(choices) {
+			if m.cursor >= len(m.choices) {
 				m.cursor = 0
 			}
 
 		case "up", "k":
 			m.cursor--
 			if m.cursor < 0 {
-				m.cursor = len(choices) - 1
+				m.cursor = len(m.choices) - 1
 			}
 		}
 
@@ -77,15 +81,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	s := strings.Builder{}
-	s.WriteString("Select file to open\n\n")
+	s.WriteString(m.label)
+	s.WriteString("n\n")
 
-	for i := 0; i < len(choices); i++ {
+	for i := 0; i < len(m.choices); i++ {
 		if m.cursor == i {
 			s.WriteString("(•) ")
 		} else {
 			s.WriteString("( ) ")
 		}
-		s.WriteString(choices[i].Title)
+		s.WriteString(m.choices[i].Title)
 		s.WriteString("\n")
 	}
 	s.WriteString("\n(press q to quit)\n")

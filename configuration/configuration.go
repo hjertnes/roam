@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"github.com/hjertnes/roam/models"
+	"github.com/rotisserie/eris"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 )
@@ -11,12 +12,12 @@ func ReadConfigurationFile(filename string) (*models.Configuration, error){
 
 	data, err := ioutil.ReadFile(filename)
 	if err != nil{
-		return nil, err
+		return nil, eris.Wrap(err, "failed to read config file")
 	}
 
 	err = yaml.Unmarshal(data, &conf)
 	if err != nil{
-		return nil, err
+		return nil, eris.Wrap(err, "failed to unmarshal config file")
 	}
 
 	return &conf, nil
@@ -44,13 +45,13 @@ func CreateConfigurationFile(filename string) error{
 	data, err := yaml.Marshal(&config)
 
 	if err != nil{
-		return err
+		return eris.Wrap(err, "failed to marshal config file")
 	}
 
-	err = ioutil.WriteFile(filename, data, 0700)
+	err = ioutil.WriteFile(filename, data, 0600)
 
 	if err != nil{
-		return err
+		return eris.Wrap(err, "failed to write config file")
 	}
 
 	return nil

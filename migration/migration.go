@@ -3,6 +3,7 @@ package migration
 import (
 	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/rotisserie/eris"
 )
 type Migration struct {
 	ctx  context.Context
@@ -19,7 +20,7 @@ func New(ctx context.Context, conn *pgxpool.Pool) *Migration{
 func (m *Migration) v1() error{
 	_, err := m.conn.Exec(m.ctx, `CREATE EXTENSION pgcrypto;`)
 	if err != nil{
-		return err
+		return eris.Wrap(err, "could not enable pgcrypto")
 	}
 
 	_, err = m.conn.Exec(m.ctx, `create table migration_history(migration int not null unique);`)
@@ -31,16 +32,19 @@ func (m *Migration) v1() error{
 create table files(
 id uuid primary key not null default gen_random_uuid() unique, 
 processed_at timestamp not null default timezone('utc', now()),
-opened_at timestamp not null default timezone('utc', now()),
 path text not null, 
-title text not null, title_tokens tsvector not null, content text not null, content_tokens tsvector not null);`)
+title text not null, 
+title_tokens tsvector not null,
+private bool not null,
+content text not null, 
+content_tokens tsvector not null);`)
 	if err != nil{
-		return err
+		return eris.Wrap(err, "failed to create files table")
 	}
 
 	_, err = m.conn.Exec(m.ctx, `insert into migration_history (migration) values(1);`)
 	if err != nil{
-		return err
+		return eris.Wrap(err, "failed to insert migration into migration history")
 	}
 
 	return nil
@@ -63,7 +67,7 @@ func (m *Migration) getMigrationNumber() (int, error){
 	var res int
 	err := q.Scan(&res)
 	if err != nil{
-		return 0, err
+		return 0, eris.Wrap(err, "failed to get the latest migration done from database")
 	}
 
 	return res, err
@@ -79,7 +83,7 @@ func (m *Migration) Migrate() error{
 	if !exist{
 		err = m.v1()
 		if err != nil{
-			return err
+			return eris.Wrap(err, "migration to v1 failed")
 		}
 	}
 
@@ -91,13 +95,9 @@ func (m *Migration) Migrate() error{
 	if migrationNumber == 0{
 		err = m.v1()
 		if err != nil{
-			return err
+			return eris.Wrap(err, "migration to v1 failed")
 		}
 	}
 
 	return nil
 }
-/*
-create table runs (run_at timestamp not null unique);
-select coalesce(max(run_at), TO_TIMESTAMP('2020-01-01 00:00:00', 'YYYY-MM-DD HH24:MI:SS')) from runs;
-*/
