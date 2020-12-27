@@ -80,6 +80,15 @@ func main() {
 			return
 		}
 		return
+
+	case "report":
+		err := commands.Report(path)
+		if err != nil {
+			fmt.Println("Report failed")
+			fmt.Println(eris.ToString(err, true))
+			return
+		}
+		return
 	case "daily":
 		if len(os.Args) == 2 {
 			conf, err := configuration.ReadConfigurationFile(fmt.Sprintf("%s/.config/config.yaml", path))

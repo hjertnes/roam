@@ -2,6 +2,7 @@ package textinput
 
 import (
 	"fmt"
+	"os"
 
 	input "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -63,8 +64,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEsc:
 			fallthrough
 		case tea.KeyEnter:
-			m.data <- m.textInput.Value()
-			return m, tea.Quit
+			os.Exit(0)
 		}
 
 	case errMsg:

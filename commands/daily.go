@@ -47,7 +47,7 @@ func Daily(path, date string) error {
 
 	err = cmd.Start()
 	if err != nil {
-		return eris.Wrap(err, "faield to edit daily in editor")
+		return eris.Wrap(err, "faield to editNote daily in editor")
 	}
 
 	return nil

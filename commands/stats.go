@@ -23,7 +23,7 @@ func Stats(path string) error {
 	}
 	dal := dal2.New(ctx, pxp)
 
-	all, public, private, err := dal.Stats()
+	all, public, private, links, err := dal.Stats()
 	if err != nil {
 		return eris.Wrap(err, "failed to get stats")
 	}
@@ -32,6 +32,7 @@ func Stats(path string) error {
 	fmt.Println(fmt.Sprintf("All: %v", all))
 	fmt.Println(fmt.Sprintf("Private: %v", private))
 	fmt.Println(fmt.Sprintf("Public: %v", public))
+	fmt.Println(fmt.Sprintf("Links: %v", links))
 
 	return nil
 }

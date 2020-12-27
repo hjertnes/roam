@@ -1,8 +1,8 @@
 package selectinput
 
 import (
+	"os"
 	"strings"
-
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/hjertnes/roam/errs"
@@ -58,9 +58,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
-			close(m.choice) // If we're quitting just chose the channel.
-			return m, tea.Quit
-
+			os.Exit(0)
 		case "enter":
 			// Send the choice on the channel and exit.
 			m.choice <- m.choices[m.cursor]

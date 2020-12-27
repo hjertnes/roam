@@ -138,33 +138,35 @@ func (d *Dal) FindExact(search string) ([]models.File, error) {
 	return result, nil
 }
 
-func (d *Dal) Stats() (int, int, int, error) {
-	var all int
-
-	var public int
-
-	var private int
+func (d *Dal) Stats() (int, int, int, int, error) {
+	var all, private, public, links int
 
 	res1 := d.conn.QueryRow(d.ctx, "select count(*) from files")
 	res2 := d.conn.QueryRow(d.ctx, "select count(*) from files where private=true")
 	res3 := d.conn.QueryRow(d.ctx, "select count(*) from files where private=false")
+	res4 := d.conn.QueryRow(d.ctx, "select count(*) from links")
 
 	err := res1.Scan(&all)
 	if err != nil {
-		return 0, 0, 0, eris.Wrap(err, "failed to scan")
+		return 0, 0, 0, 0, eris.Wrap(err, "failed to scan")
 	}
 
 	err = res2.Scan(&private)
 	if err != nil {
-		return 0, 0, 0, eris.Wrap(err, "failed to scan")
+		return 0, 0, 0, 0, eris.Wrap(err, "failed to scan")
 	}
 
 	err = res3.Scan(&public)
 	if err != nil {
-		return 0, 0, 0, eris.Wrap(err, "failed to scan")
+		return 0, 0, 0, 0, eris.Wrap(err, "failed to scan")
 	}
 
-	return all, public, private, nil
+	err = res4.Scan(&links)
+	if err != nil {
+		return 0, 0, 0, 0, eris.Wrap(err, "failed to scan")
+	}
+
+	return all, public, private, links, nil
 }
 
 func (d *Dal) AddLink(fileId, linkedToFile string) error {
@@ -208,6 +210,20 @@ func (d *Dal) GetCurrentLinks(fileId string) ([]string, error) {
 func (d *Dal) GetBacklinks(fileId string) ([]models.File, error) {
 	result := make([]models.File, 0)
 	res, err := d.conn.Query(d.ctx, `select id, path, title from files where id in (SELECT file_fk from links WHERE link_fk=$1);`, fileId)
+	if err != nil {
+		return result, eris.Wrap(err, "failed to query for list of links")
+	}
+	err = pgxscan.ScanAll(&result, res)
+	if err != nil {
+		return result, eris.Wrap(err, "failed to scan query for list of links")
+	}
+
+	return result, nil
+}
+
+func (d *Dal) GetLinks(fileId string) ([]models.File, error) {
+	result := make([]models.File, 0)
+	res, err := d.conn.Query(d.ctx, `select id, path, title from files where id in (SELECT link_fk from links WHERE file_fk=$1);`, fileId)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to query for list of links")
 	}
