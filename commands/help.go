@@ -1,9 +1,11 @@
+// Package commands contains all the commands.
 package commands
 
 import "fmt"
 
-const version = "0.0.12"
+const version = "0.0.13"
 
+// Help prints help message.
 func Help() {
 	fmt.Printf("roam\n")
 	fmt.Printf("Version: %s\n", version)

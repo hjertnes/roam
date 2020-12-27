@@ -1,3 +1,4 @@
+// Package selectinput a option-select widget based on bubbletea
 package selectinput
 
 import (
@@ -16,17 +17,24 @@ type model struct {
 	choice  chan Choice
 }
 
+const (
+	zero = 0
+	one  = 1
+)
+
+// Run displays the select and returns the result.
 func Run(label string, choices []Choice) (*Choice, error) {
 	result := make(chan Choice, 1)
 
-	if len(choices) == 0 {
-		return nil, eris.Wrap(errs.NotFound, "no choices found")
-	} else if len(choices) == 1 {
+	switch len(choices) {
+	case zero:
+		return nil, eris.Wrap(errs.ErrNotFound, "no choices found")
+	case one:
 		result <- choices[0]
-	} else {
+	default:
 		p := tea.NewProgram(initialModel(label, choices, result))
 		if err := p.Start(); err != nil {
-			return nil, err
+			return nil, eris.Wrap(err, "failed to get user selection")
 		}
 	}
 
@@ -35,6 +43,7 @@ func Run(label string, choices []Choice) (*Choice, error) {
 	return &r, nil
 }
 
+// Choice is the type for the options.
 type Choice struct {
 	Title string
 	Value string
@@ -60,10 +69,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			os.Exit(0)
 		case "enter":
-			// Send the choice on the channel and exit.
 			m.choice <- m.choices[m.cursor]
-			return m, tea.Quit
 
+			return m, tea.Quit
 		case "down", "j":
 			m.cursor++
 			if m.cursor >= len(m.choices) {
@@ -92,6 +100,7 @@ func (m model) View() string {
 		} else {
 			s.WriteString("[ ] ")
 		}
+
 		s.WriteString(m.choices[i].Title)
 		s.WriteString("\n")
 	}

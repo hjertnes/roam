@@ -11,12 +11,17 @@ I feel more and more like I want to replace org-roam with something of my own
 - Interactive mode that will give you a dropdown of options to replace it with and edit file option
 - Find a way to tell the user there are problems they should deal with
 - Full lint. Started but had some issues
+- Move all models to models
 
+** v0.0.13
+- Lint
 ** v0.0.
 - Publish
 - Try to use hugo
 - If it works
+- Build a index at first just a sorted flat list
 - Include backlinks
+- Nested list
 
 
 

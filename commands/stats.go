@@ -10,6 +10,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// Stats shows statistics.
 func Stats(path string) error {
 	conf, err := configuration.ReadConfigurationFile(fmt.Sprintf("%s/.config/config.yaml", path))
 	if err != nil {
@@ -17,10 +18,12 @@ func Stats(path string) error {
 	}
 
 	ctx := context.Background()
+
 	pxp, err := pgxpool.Connect(ctx, conf.DatabaseConnectionString)
 	if err != nil {
 		return eris.Wrap(err, "could not connect to database")
 	}
+
 	dal := dal2.New(ctx, pxp)
 
 	all, public, private, links, err := dal.Stats()
@@ -29,10 +32,10 @@ func Stats(path string) error {
 	}
 
 	fmt.Println("Stats")
-	fmt.Println(fmt.Sprintf("All: %v", all))
-	fmt.Println(fmt.Sprintf("Private: %v", private))
-	fmt.Println(fmt.Sprintf("Public: %v", public))
-	fmt.Println(fmt.Sprintf("Links: %v", links))
+	fmt.Printf("All: %v\n", all)
+	fmt.Printf("Private: %v\n", private)
+	fmt.Printf("Public: %v\n", public)
+	fmt.Printf("Links: %v\n", links)
 
 	return nil
 }

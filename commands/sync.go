@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"github.com/hjertnes/roam/errs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,11 +23,14 @@ func Sync(path string) error {
 	if err != nil {
 		return eris.Wrap(err, "failed to get config")
 	}
+
 	ctx := context.Background()
+
 	pxp, err := pgxpool.Connect(ctx, conf.DatabaseConnectionString)
 	if err != nil {
 		return eris.Wrap(err, "could not connect to database")
 	}
+
 	dal := dal2.New(ctx, pxp)
 
 	err = dal.Delete()
@@ -34,7 +38,11 @@ func Sync(path string) error {
 		return eris.Wrap(err, "failed to delete files that don't exist from database")
 	}
 
-	err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(path, func(path string, info os.FileInfo, errr error) error {
+		if errr != nil {
+			return eris.Wrap(errr, "unknown problems parsing folder")
+		}
+
 		if info.Name() == ".DS_Store" {
 			return nil
 		}
@@ -64,9 +72,18 @@ func Sync(path string) error {
 				return eris.Wrap(err, "failed to create in database")
 			}
 		}
+
 		return nil
 	})
+
+	if err != nil {
+		return eris.Wrap(err, "failed to process files")
+	}
+
 	files, err := dal.GetFiles()
+	if err != nil {
+		return eris.Wrap(err, "failed to get list of files")
+	}
 
 	for _, file := range files {
 		if !utils.FileExist(file.Path) {
@@ -79,13 +96,19 @@ func Sync(path string) error {
 		}
 
 		links := noteLinkRegexp.FindAllString(metadata.Content, -1)
-		currentInDatabaseLinks, err := dal.GetCurrentLinks(file.Id)
+
+		currentInDatabaseLinks, err := dal.GetCurrentLinks(file.ID)
+		if err != nil {
+			return eris.Wrap(err, "failed to get current links")
+		}
+
 		currentLinks := make([]string, 0)
 
 		for _, link := range links {
 			clean := cleanLink(link)
 
-			path := ""
+			filename := clean
+
 			if strings.HasPrefix(clean, "/") {
 				exist1, err := dal.Exists(fmt.Sprintf("%s%s.md", path, clean))
 				if err != nil {
@@ -97,22 +120,16 @@ func Sync(path string) error {
 					return eris.Wrap(err, "failed to check if link exists")
 				}
 
-				if !exist1 && !exist2 {
-					continue
-				}
-
 				if exist1 {
-					path = fmt.Sprintf("%s%s.md", path, clean)
+					filename = fmt.Sprintf("%s%s.md", path, clean)
+				} else if exist2 {
+					filename = fmt.Sprintf("%s%s/index.md", path, clean)
+				} else {
+					return eris.Wrap(errs.ErrNotFound, "not found")
 				}
-
-				if exist2 {
-					path = fmt.Sprintf("%s%s/index.md", path, clean)
-				}
-			} else {
-				path = clean
 			}
 
-			matches, err := dal.FindExact(path)
+			matches, err := dal.FindExact(filename)
 			if err != nil {
 				return eris.Wrap(err, "failed to search for link")
 			}
@@ -125,17 +142,17 @@ func Sync(path string) error {
 				continue
 			}
 
-			err = dal.AddLink(file.Id, matches[0].Id)
+			err = dal.AddLink(file.ID, matches[0].ID)
 			if err != nil {
 				return eris.Wrap(err, "failed to add link")
 			}
 
-			currentLinks = append(currentLinks, matches[0].Id)
+			currentLinks = append(currentLinks, matches[0].ID)
 		}
 
 		for _, l := range currentInDatabaseLinks {
 			if !contains(l, currentLinks) {
-				err := dal.DeleteLink(file.Id, l)
+				err := dal.DeleteLink(file.ID, l)
 				if err != nil {
 					return eris.Wrap(err, "failed to delete link")
 				}
@@ -156,6 +173,7 @@ func contains(id string, files []string) bool {
 	for _, f := range files {
 		if f == id {
 			c = true
+
 			break
 		}
 	}
@@ -163,9 +181,14 @@ func contains(id string, files []string) bool {
 	return c
 }
 
-func readfile(path string) (*models.Fm, error) {
-	data, err := ioutil.ReadFile(path)
-	metadata := models.Fm{}
+func readfile(path string) (*models.Frontmatter, error) {
+	data, err := ioutil.ReadFile(filepath.Clean(path))
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to read file")
+	}
+
+	metadata := models.Frontmatter{}
+
 	err = frontmatter.Unmarshal(data, &metadata)
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to unmarshal frontmatter")

@@ -23,9 +23,11 @@ private: false
 ---
 `
 
+// Init creates a config file.
 func Init(path string) error {
 	configFolder := fmt.Sprintf("%s/.config", path)
 	configFile := fmt.Sprintf("%s/config.yaml", configFolder)
+
 	if !utilslib.FileExist(configFolder) {
 		err := os.Mkdir(configFolder, 0600)
 		if err != nil {

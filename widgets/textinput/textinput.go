@@ -1,3 +1,4 @@
+// Package textinput is a wrapper around bubbletea textinput to make it easy to get input from user
 package textinput
 
 import (
@@ -9,10 +10,12 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// Run displays the input and returns the result.
 func Run(placeholder, label string) (string, error) {
 	result := make(chan string, 1)
 
 	p := tea.NewProgram(initialModel(result, placeholder, label))
+
 	err := p.Start()
 	if err != nil {
 		return "", eris.Wrap(err, "textinput failed")
@@ -69,10 +72,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case errMsg:
 		m.err = msg
+
 		return m, nil
 	}
 
 	m.textInput, cmd = m.textInput.Update(msg)
+
 	return m, cmd
 }
 

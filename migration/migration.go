@@ -1,3 +1,4 @@
+// Package migration migrates database changes
 package migration
 
 import (
@@ -7,11 +8,13 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// Migration is the exported type.
 type Migration struct {
 	ctx  context.Context
 	conn *pgxpool.Pool
 }
 
+// New is the constructor.
 func New(ctx context.Context, conn *pgxpool.Pool) *Migration {
 	return &Migration{
 		ctx:  ctx,
@@ -27,7 +30,7 @@ func (m *Migration) v1() error {
 
 	_, err = m.conn.Exec(m.ctx, `create table migration_history(migration int not null unique);`)
 	if err != nil {
-		return err
+		return eris.Wrap(err, "failed to create migration history")
 	}
 
 	_, err = m.conn.Exec(m.ctx, `
@@ -74,27 +77,39 @@ CREATE INDEX links_idx ON links (file_fk, link_fk);`)
 }
 
 func (m *Migration) checkIfMigrationHistoryExist() (bool, error) {
-	q := m.conn.QueryRow(m.ctx, `select exists(select 1 from information_schema.tables where table_schema='public' and table_name='migration_history');`)
+	q := m.conn.QueryRow(
+		m.ctx,
+		`
+select exists(
+select 1 
+from information_schema.tables 
+where table_schema='public' and table_name='migration_history'
+);`)
+
 	var res bool
+
 	err := q.Scan(&res)
 	if err != nil {
-		return false, err
+		return false, eris.Wrap(err, "failed to check if migration_history exist")
 	}
 
-	return res, err
+	return res, nil
 }
 
 func (m *Migration) getMigrationNumber() (int, error) {
 	q := m.conn.QueryRow(m.ctx, `select coalesce(max(migration), 0) from migration_history;`)
+
 	var res int
+
 	err := q.Scan(&res)
 	if err != nil {
 		return 0, eris.Wrap(err, "failed to get the latest migration done from database")
 	}
 
-	return res, err
+	return res, nil
 }
 
+// Migrate runs migrations.
 func (m *Migration) Migrate() error {
 	exist, err := m.checkIfMigrationHistoryExist()
 	if err != nil {

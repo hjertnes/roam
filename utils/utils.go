@@ -1,7 +1,13 @@
+// Package utils contains various methods I don't have a better place for
 package utils
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"path/filepath"
+
 	"github.com/charmbracelet/glamour"
 	"github.com/ericaro/frontmatter"
 	"github.com/hjertnes/roam/errs"
@@ -9,12 +15,9 @@ import (
 	"github.com/hjertnes/roam/widgets/selectinput"
 	"github.com/hjertnes/utils"
 	"github.com/rotisserie/eris"
-	"io/ioutil"
-	"os"
-	"os/exec"
 )
 
-// GetPath returns the value of the ROAM enviornment variable or a default value if not set
+// GetPath returns the value of the ROAM environment variable or a default value if not set.
 func GetPath() string {
 	path, isSet := os.LookupEnv("ROAM")
 
@@ -25,7 +28,7 @@ func GetPath() string {
 	return utils.ExpandTilde(path)
 }
 
-// GetEditor returns the value of the EDITOR enviornment variable or a default value if not set
+// GetEditor returns the value of the EDITOR enlivenment variable or a default value if not set.
 func GetEditor() string {
 	editor, isSet := os.LookupEnv("EDITOR")
 
@@ -36,19 +39,21 @@ func GetEditor() string {
 	return editor
 }
 
+// FilesToChoices maps a []models.File to []selectinput.Choice.
 func FilesToChoices(input []models.File) []selectinput.Choice {
 	paths := make([]selectinput.Choice, 0)
 
 	for _, r := range input {
-		paths = append(paths, selectinput.Choice{Title: r.Path, Value: r.Id})
+		paths = append(paths, selectinput.Choice{Title: r.Path, Value: r.ID})
 	}
 
 	return paths
 }
 
-func EditNote(path string) error{
+// EditNote opens the specified file in EDITOR.
+func EditNote(path string) error {
 	editor := GetEditor()
-	cmd := exec.Command(editor, path)
+	cmd := exec.Command(editor, path) // #nosec G204
 
 	err := cmd.Start()
 	if err != nil {
@@ -57,12 +62,16 @@ func EditNote(path string) error{
 
 	return nil
 }
-func ViewNote(path string) error{
-	data, err := ioutil.ReadFile(path)
+
+// ViewNote renders the specified note as markdown in terminal.
+func ViewNote(path string) error {
+	data, err := ioutil.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return eris.Wrap(err, "could not read file")
 	}
-	metadata := models.Fm{}
+
+	metadata := models.Frontmatter{}
+
 	err = frontmatter.Unmarshal(data, &metadata)
 	if err != nil {
 		return eris.Wrap(err, "could not unmarkshal frontmatter")
@@ -76,22 +85,41 @@ func ViewNote(path string) error{
 	if err != nil {
 		return eris.Wrap(err, "failed to render markdown file")
 	}
+
 	fmt.Print(out)
+
 	return nil
 }
 
-func GetFile(files []models.File, id string) (*models.File, error){
-	var file *models.File
-	for _, r := range files {
-		if r.Id == id {
-			file = &r
+// GetFile returns a file with a id form a list of files.
+func GetFile(files []models.File, id string) (*models.File, error) {
+	var f *models.File
+
+	for i := range files {
+		if files[i].ID == id {
+			f = &files[i]
+
 			break
 		}
 	}
 
-	if file == nil{
-		eris.Wrap(errs.NotFound, "no match")
+	if f == nil {
+		return nil, eris.Wrap(errs.ErrNotFound, "no match")
 	}
 
-	return file, nil
+	return f, nil
+}
+
+// ConvertTemplateFiles convert TemplateFiles to Choice.
+func ConvertTemplateFiles(templates []models.TemplateFile) []selectinput.Choice {
+	result := make([]selectinput.Choice, 0)
+
+	for _, f := range templates {
+		result = append(result, selectinput.Choice{
+			Title: f.Title,
+			Value: f.Filename,
+		})
+	}
+
+	return result
 }

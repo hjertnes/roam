@@ -1,3 +1,4 @@
+// Package dal contains all the database stuff
 package dal
 
 import (
@@ -12,11 +13,13 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// Dal is the exported type.
 type Dal struct {
 	ctx  context.Context
 	conn *pgxpool.Pool
 }
 
+// New is the constructor.
 func New(ctx context.Context, conn *pgxpool.Pool) *Dal {
 	return &Dal{
 		ctx:  ctx,
@@ -24,10 +27,12 @@ func New(ctx context.Context, conn *pgxpool.Pool) *Dal {
 	}
 }
 
+// Exists checks if a row with the path exists.
 func (d *Dal) Exists(path string) (bool, error) {
 	res := d.conn.QueryRow(d.ctx, `select exists (select 1 from files where path=$1)`, path)
 
 	var result bool
+
 	err := res.Scan(&result)
 	if err != nil {
 		return false, eris.Wrap(err, "failed to check if file exits")
@@ -36,12 +41,13 @@ func (d *Dal) Exists(path string) (bool, error) {
 	return result, nil
 }
 
+// GetFiles returns all files in database/.
 func (d *Dal) GetFiles() ([]models.File, error) {
 	var files []models.File
 
 	result, err := d.conn.Query(
 		d.ctx,
-		`select id, title, path from files`)
+		`select ID, title, path from files`)
 	if err != nil {
 		return files, eris.Wrap(err, "failed to get list of files")
 	}
@@ -54,10 +60,14 @@ func (d *Dal) GetFiles() ([]models.File, error) {
 	return files, nil
 }
 
+// Create adds new file to database.
 func (d *Dal) Create(path, title, content string, private bool) error {
 	_, err := d.conn.Exec(
 		d.ctx,
-		`insert into files (processed_at, path, title, title_tokens, content, content_tokens, private) values(timezone('utc', now()), $1, $2, to_tsvector($2), $3, to_tsvector($3), $4)`,
+		`
+insert into files 
+(processed_at, path, title, title_tokens, content, content_tokens, private) 
+values(timezone('utc', now()), $1, $2, to_tsvector($2), $3, to_tsvector($3), $4)`,
 		path, title, content, private)
 	if err != nil {
 		return eris.Wrap(err, "failed to create file")
@@ -66,6 +76,7 @@ func (d *Dal) Create(path, title, content string, private bool) error {
 	return nil
 }
 
+// Delete removes all files from database that don't exist on the file system.
 func (d *Dal) Delete() error {
 	files, err := d.GetFiles()
 	if err != nil {
@@ -84,11 +95,17 @@ func (d *Dal) Delete() error {
 	return nil
 }
 
+// Update updates a file.
 func (d *Dal) Update(path, title, content string, private bool) error {
-
 	_, err := d.conn.Exec(
 		d.ctx,
-		`update files set processed_at=timezone('utc', now()), title=$2, title_tokens=to_tsvector($2), content=$3, content_tokens=to_tsvector($3), private=$4 where path=$1`,
+		`
+update files set 
+processed_at=timezone('utc', now()), 
+title=$2, title_tokens=to_tsvector($2), 
+content=$3, 
+content_tokens=to_tsvector($3), 
+private=$4 where path=$1`,
 		path, title, content, private)
 	if err != nil {
 		return eris.Wrap(err, "failed to update file")
@@ -101,6 +118,7 @@ func buildVectorSearch(input string) string {
 	if !strings.Contains(input, " ") {
 		return fmt.Sprintf("%s:*", input)
 	}
+
 	output := make([]string, 0)
 
 	for _, l := range strings.Split(input, " ") {
@@ -110,12 +128,18 @@ func buildVectorSearch(input string) string {
 	return strings.Join(output, "&")
 }
 
+// Find returns a list of notes that match a search.
 func (d *Dal) Find(search string) ([]models.File, error) {
 	result := make([]models.File, 0)
-	res, err := d.conn.Query(d.ctx, `SELECT id, path, title FROM files WHERE title_tokens @@ to_tsquery($1);`, buildVectorSearch(search))
+
+	res, err := d.conn.Query(d.ctx, `
+SELECT ID, path, title 
+FROM files 
+WHERE title_tokens @@ to_tsquery($1);`, buildVectorSearch(search))
 	if err != nil {
 		return result, eris.Wrap(err, "failed to run search query")
 	}
+
 	err = pgxscan.ScanAll(&result, res)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to scan search query")
@@ -124,12 +148,15 @@ func (d *Dal) Find(search string) ([]models.File, error) {
 	return result, nil
 }
 
+// FindExact returns a list of notes with an exact title.
 func (d *Dal) FindExact(search string) ([]models.File, error) {
 	result := make([]models.File, 0)
-	res, err := d.conn.Query(d.ctx, `SELECT id, path, title FROM files WHERE title=$1;`, search)
+
+	res, err := d.conn.Query(d.ctx, `SELECT ID, path, title FROM files WHERE title=$1;`, search)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to run search query")
 	}
+
 	err = pgxscan.ScanAll(&result, res)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to scan search query")
@@ -138,6 +165,7 @@ func (d *Dal) FindExact(search string) ([]models.File, error) {
 	return result, nil
 }
 
+// Stats returns stats.
 func (d *Dal) Stats() (int, int, int, int, error) {
 	var all, private, public, links int
 
@@ -169,11 +197,12 @@ func (d *Dal) Stats() (int, int, int, int, error) {
 	return all, public, private, links, nil
 }
 
-func (d *Dal) AddLink(fileId, linkedToFile string) error {
+// AddLink adds a link.
+func (d *Dal) AddLink(fileID, linkedToFile string) error {
 	_, err := d.conn.Exec(
 		d.ctx,
 		`insert into links (file_fk, link_fk) values($1, $2) on conflict do nothing`,
-		fileId, linkedToFile)
+		fileID, linkedToFile)
 	if err != nil {
 		return eris.Wrap(err, "failed to create link")
 	}
@@ -181,11 +210,12 @@ func (d *Dal) AddLink(fileId, linkedToFile string) error {
 	return nil
 }
 
-func (d *Dal) DeleteLink(fileId, linkedToFile string) error {
+// DeleteLink removes a link from a file.
+func (d *Dal) DeleteLink(fileID, linkedToFile string) error {
 	_, err := d.conn.Exec(
 		d.ctx,
-		`delete from links where file_fk=$ and link_fk=$2`, fileId, linkedToFile,
-		fileId, linkedToFile)
+		`delete from links where file_fk=$ and link_fk=$2`, fileID, linkedToFile,
+		fileID, linkedToFile)
 	if err != nil {
 		return eris.Wrap(err, "failed to create link")
 	}
@@ -193,12 +223,15 @@ func (d *Dal) DeleteLink(fileId, linkedToFile string) error {
 	return nil
 }
 
-func (d *Dal) GetCurrentLinks(fileId string) ([]string, error) {
+// GetCurrentLinks returns the path of all links of a file.
+func (d *Dal) GetCurrentLinks(fileID string) ([]string, error) {
 	result := make([]string, 0)
-	res, err := d.conn.Query(d.ctx, `SELECT link_fk from links WHERE file_fk=$1;`, fileId)
+
+	res, err := d.conn.Query(d.ctx, `SELECT link_fk from links WHERE file_fk=$1;`, fileID)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to query for list of links")
 	}
+
 	err = pgxscan.ScanAll(&result, res)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to scan query for list of links")
@@ -207,12 +240,17 @@ func (d *Dal) GetCurrentLinks(fileId string) ([]string, error) {
 	return result, nil
 }
 
-func (d *Dal) GetBacklinks(fileId string) ([]models.File, error) {
+// GetBacklinks returns the backlinks of a file.
+func (d *Dal) GetBacklinks(fileID string) ([]models.File, error) {
 	result := make([]models.File, 0)
-	res, err := d.conn.Query(d.ctx, `select id, path, title from files where id in (SELECT file_fk from links WHERE link_fk=$1);`, fileId)
+
+	res, err := d.conn.Query(d.ctx, `
+select ID, path, title from files where ID in 
+(SELECT file_fk from links WHERE link_fk=$1);`, fileID)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to query for list of links")
 	}
+
 	err = pgxscan.ScanAll(&result, res)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to scan query for list of links")
@@ -221,12 +259,18 @@ func (d *Dal) GetBacklinks(fileId string) ([]models.File, error) {
 	return result, nil
 }
 
-func (d *Dal) GetLinks(fileId string) ([]models.File, error) {
+// GetLinks returns the links of a file.
+func (d *Dal) GetLinks(fileID string) ([]models.File, error) {
 	result := make([]models.File, 0)
-	res, err := d.conn.Query(d.ctx, `select id, path, title from files where id in (SELECT link_fk from links WHERE file_fk=$1);`, fileId)
+
+	res, err := d.conn.Query(
+		d.ctx, `
+select ID, path, title from files where ID in 
+(SELECT link_fk from links WHERE file_fk=$1);`, fileID)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to query for list of links")
 	}
+
 	err = pgxscan.ScanAll(&result, res)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to scan query for list of links")

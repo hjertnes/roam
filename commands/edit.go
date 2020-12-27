@@ -2,15 +2,18 @@ package commands
 
 import (
 	"fmt"
-	"github.com/hjertnes/roam/utils"
-	"github.com/rotisserie/eris"
 	"os"
 	"os/exec"
 
+	"github.com/hjertnes/roam/utils"
+	"github.com/rotisserie/eris"
 )
 
+const two = 2
+
+// Edit opens something in editor.
 func Edit(path string) error {
-	if len(os.Args) == 2 {
+	if len(os.Args) == two {
 		Help()
 	}
 
@@ -18,14 +21,17 @@ func Edit(path string) error {
 	case "config":
 		editor := utils.GetEditor()
 		configFile := fmt.Sprintf("%s/.config/config.yaml", path)
-		cmd := exec.Command(editor, configFile)
+		cmd := exec.Command(editor, configFile) // #nosec G204
+
 		err := cmd.Start()
 		if err != nil {
 			return eris.Wrap(err, "could not open config in editor")
 		}
+
 		return nil
 	default:
 		Help()
+
 		return nil
 	}
 }

@@ -13,6 +13,8 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+
+// Diagnostic shows potential issues with your notes
 func Diagnostic(path string) error {
 	conf, err := configuration.ReadConfigurationFile(fmt.Sprintf("%s/.config/config.yaml", path))
 	if err != nil {
@@ -20,6 +22,7 @@ func Diagnostic(path string) error {
 	}
 
 	ctx := context.Background()
+
 	pxp, err := pgxpool.Connect(ctx, conf.DatabaseConnectionString)
 	if err != nil {
 		return eris.Wrap(err, "could not connect to database")
@@ -28,10 +31,14 @@ func Diagnostic(path string) error {
 	dal := dal2.New(ctx, pxp)
 
 	files, err := dal.GetFiles()
+	if err != nil {
+		return eris.Wrap(err, "failed to get list of files")
+	}
 
 	for _, file := range files {
 		if !utils.FileExist(file.Path) {
 			fmt.Printf("%s: doesn't exist\n", file)
+
 			continue
 		}
 
@@ -39,6 +46,7 @@ func Diagnostic(path string) error {
 		if err != nil {
 			fmt.Printf("%s could not read file\n", file)
 			fmt.Println("most likely invalid front matter")
+
 			continue
 		}
 
@@ -46,6 +54,7 @@ func Diagnostic(path string) error {
 
 		for _, link := range links {
 			clean := cleanLink(link)
+
 			if strings.HasPrefix(clean, "/") {
 				exist1, err := dal.Exists(fmt.Sprintf("%s%s.md", path, clean))
 				if err != nil {
@@ -59,23 +68,26 @@ func Diagnostic(path string) error {
 
 				if !exist1 && !exist2 {
 					fmt.Printf("%s no matches for link %s", file, clean)
-					continue
-				}
-			} else {
-				matches, err := dal.FindExact(clean)
-				if err != nil {
-					return eris.Wrap(err, "failed to search for link")
 				}
 
-				if len(matches) == 0 {
-					fmt.Printf("%s no matches for link %s\n", file, clean)
-					continue
-				}
+				continue
+			}
 
-				if len(matches) > 1 {
-					fmt.Printf("%s more than one match for link %s\n", file, clean)
-					continue
-				}
+			matches, err := dal.FindExact(clean)
+			if err != nil {
+				return eris.Wrap(err, "failed to search for link")
+			}
+
+			if len(matches) == 0 {
+				fmt.Printf("%s no matches for link %s\n", file, clean)
+
+				continue
+			}
+
+			if len(matches) > 1 {
+				fmt.Printf("%s more than one match for link %s\n", file, clean)
+
+				continue
 			}
 		}
 	}

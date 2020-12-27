@@ -1,13 +1,13 @@
 package commands
 
 import (
-	dal2 "github.com/hjertnes/roam/dal"
-	"github.com/hjertnes/roam/models"
-	"github.com/rotisserie/eris"
 	"io/ioutil"
 	"strings"
 	"time"
 
+	dal2 "github.com/hjertnes/roam/dal"
+	"github.com/hjertnes/roam/models"
+	"github.com/rotisserie/eris"
 )
 
 func createFile(dal *dal2.Dal, filepath, title string, templatedata []byte, conf *models.Configuration) error {
