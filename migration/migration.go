@@ -57,7 +57,8 @@ id uuid primary key not null default gen_random_uuid() unique,
 file_fk uuid not null references files(id),
 link_fk uuid not null references files(id),
 unique(file_fk, link_fk)
-);`)
+);
+CREATE INDEX links_idx ON links (file_fk, link_fk);`)
 	if err != nil{
 		return eris.Wrap(err, "failed to create links table")
 	}

@@ -42,14 +42,17 @@ defaults to dry run, only shows what it would have done and warns about issues a
 - Find a way to tell the user there are problems they should deal with
 
 ** v0.0.9
+- Add indexes
+
+** v0.0.
 - Change find to either open file (default) or show backlinks and open them
 
-** v0.0.10
+** v0.0.
 - Makefile
 - Linting
 - - Update help
 
-** v0.0.11
+** v0.0.
 - Publish
 - Try to use hugo
 - If it works
