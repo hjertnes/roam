@@ -104,14 +104,6 @@ func main(){
 		} else {
 			commands.Help()
 		}
-	case "view":
-		err := commands.FindView(path)
-		if err != nil {
-			fmt.Println("View failed")
-			fmt.Println(eris.ToString(err, true))
-			return
-		}
-		return
 	case "stats":
 		err := commands.Stats(path)
 		if err != nil {

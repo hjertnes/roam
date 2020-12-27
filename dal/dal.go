@@ -203,7 +203,17 @@ func (d *Dal) GetCurrentLinks(fileId string) ([]string, error){
 	return result, nil
 }
 
-/*
-GetFileIdsFromPaths
-AddLink
- */
+func (d *Dal) GetBacklinks(fileId string) ([]models.File, error){
+	result := make([]models.File, 0)
+	res, err := d.conn.Query(d.ctx, `select id, path, title from files where id in (SELECT file_fk from links WHERE link_fk=$1);`, fileId)
+	if err != nil{
+		return result, eris.Wrap(err, "failed to query for list of links")
+	}
+	err = pgxscan.ScanAll(&result, res)
+	if err != nil{
+		return result, eris.Wrap(err, "failed to scan query for list of links")
+	}
+
+	return result, nil
+}
+

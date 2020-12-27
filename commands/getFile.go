@@ -11,7 +11,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-func getFile(path string) (string, error){
+func getFiles(path string) (string, error){
 	search, err := textinput.Run("Search for a note", "Search: ")
 	if err != nil{
 		return "", eris.Wrap(err, "failed to get a search string from textinput")

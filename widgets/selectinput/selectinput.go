@@ -91,9 +91,9 @@ func (m model) View() string {
 
 	for i := 0; i < len(m.choices); i++ {
 		if m.cursor == i {
-			s.WriteString("(•) ")
+			s.WriteString("[x] ")
 		} else {
-			s.WriteString("( ) ")
+			s.WriteString("[ ] ")
 		}
 		s.WriteString(m.choices[i].Title)
 		s.WriteString("\n")

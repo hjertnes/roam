@@ -36,21 +36,19 @@ defaults to dry run, only shows what it would have done and warns about issues a
 - Edit config
 - Init: sets up for first time
 - Upgrade: migrates config
+- Add links to stats
+- Add report command
+- Use .Id instead of Path as "value"
+- Really quit on Q
 
 ** Later
 - Interactive mode that will give you a dropdown of options to replace it with and edit file option
 - Find a way to tell the user there are problems they should deal with
 
-** v0.0.9
-- Add indexes
-
-** v0.0.
-- Change find to either open file (default) or show backlinks and open them
-
 ** v0.0.
 - Makefile
 - Linting
-- - Update help
+- Update help
 
 ** v0.0.
 - Publish
