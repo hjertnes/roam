@@ -7,6 +7,7 @@ import (
 	"github.com/hjertnes/roam/configuration"
 	dal2 "github.com/hjertnes/roam/dal"
 	"github.com/hjertnes/roam/models"
+	"github.com/hjertnes/utils"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rotisserie/eris"
 	"io/ioutil"
@@ -66,12 +67,102 @@ func Sync(path string) error{
 		}
 		return nil
 	})
+	files, err := dal.GetFiles()
+
+	for _, file := range files {
+		if !utils.FileExist(file.Path){
+			continue
+		}
+
+		metadata, err := readfile(file.Path)
+
+		if err != nil{
+			continue
+		}
+
+		links := noteLinkRegexp.FindAllString(metadata.Content, -1)
+		currentInDatabaseLinks, err := dal.GetCurrentLinks(file.Id)
+		currentLinks := make([]string, 0)
+
+		for _, link := range links{
+			clean := cleanLink(link)
+
+			var path = ""
+			if strings.HasPrefix(clean, "/"){
+				exist1, err := dal.Exists(fmt.Sprintf("%s%s.md", path, clean))
+				if err != nil {
+					return eris.Wrap(err, "failed to check if link exists")
+				}
+
+				exist2, err := dal.Exists(fmt.Sprintf("%s%s/index.md", path, clean))
+				if err != nil {
+					return eris.Wrap(err, "failed to check if link exists")
+				}
+
+				if !exist1 && !exist2{
+					continue
+				}
+
+				if exist1{
+					path = fmt.Sprintf("%s%s.md", path, clean)
+				}
+
+				if exist2{
+					path = fmt.Sprintf("%s%s/index.md", path, clean)
+				}
+			}else{
+				path = clean
+			}
+
+			matches, err := dal.FindExact(path)
+			if err != nil{
+				return eris.Wrap(err, "failed to search for link")
+			}
+
+			if len(matches) == 0 {
+				continue
+			}
+
+			if len(matches) > 1 {
+				continue
+			}
+
+			err = dal.AddLink(file.Id, matches[0].Id)
+			if err != nil {
+				return eris.Wrap(err, "failed to add link")
+			}
+
+			currentLinks = append(currentLinks, matches[0].Id)
+		}
+
+		for _, l := range currentInDatabaseLinks{
+			if !contains(l, currentLinks){
+				err := dal.DeleteLink(file.Id, l)
+				if err != nil {
+					return eris.Wrap(err, "failed to delete link")
+				}
+			}
+		}
+	}
 
 	if err != nil{
 		return eris.Wrap(err, "failed to sync")
 	}
 
 	return nil
+}
+
+func contains(id string, files []string) bool{
+	c := false
+
+	for _, f := range files{
+		if f == id{
+			c = true
+			break
+		}
+	}
+
+	return c
 }
 
 func readfile(path string) (*models.Fm, error){

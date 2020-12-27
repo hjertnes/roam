@@ -39,8 +39,21 @@ defaults to dry run, only shows what it would have done and warns about issues a
 
 ** Later
 - Interactive mode that will give you a dropdown of options to replace it with and edit file option
+- Find a way to tell the user there are problems they should deal with
 
+** v0.0.9
+- Change find to either open file (default) or show backlinks and open them
 
+** v0.0.10
+- Makefile
+- Linting
+- - Update help
+
+** v0.0.11
+- Publish
+- Try to use hugo
+- If it works
+- Include backlinks
 
 ** Script to move from org til md
 find . -name "*.org" -print0 | while read -d $'\0' file

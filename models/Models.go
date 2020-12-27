@@ -22,6 +22,7 @@ type Fm struct {
 }
 
 type File struct {
+	Id string `db:"id"`
 	Title string `db:"title"`
 	Path string `db:"path"`
 }

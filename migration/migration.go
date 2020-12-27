@@ -50,6 +50,26 @@ content_tokens tsvector not null);`)
 	return nil
 }
 
+func (m *Migration) v2() error{
+	_, err := m.conn.Exec(m.ctx, `
+create table links(
+id uuid primary key not null default gen_random_uuid() unique,
+file_fk uuid not null references files(id),
+link_fk uuid not null references files(id),
+unique(file_fk, link_fk)
+);`)
+	if err != nil{
+		return eris.Wrap(err, "failed to create links table")
+	}
+
+	_, err = m.conn.Exec(m.ctx, `insert into migration_history (migration) values(2);`)
+	if err != nil{
+		return eris.Wrap(err, "failed to insert migration into migration history")
+	}
+
+	return nil
+}
+
 func (m *Migration) checkIfMigrationHistoryExist() (bool, error){
 	q := m.conn.QueryRow(m.ctx, `select exists(select 1 from information_schema.tables where table_schema='public' and table_name='migration_history');`)
 	var res bool
@@ -96,6 +116,13 @@ func (m *Migration) Migrate() error{
 		err = m.v1()
 		if err != nil{
 			return eris.Wrap(err, "migration to v1 failed")
+		}
+	}
+
+	if migrationNumber == 1{
+		err = m.v2()
+		if err != nil{
+			return eris.Wrap(err, "migration to v2 failed")
 		}
 	}
 

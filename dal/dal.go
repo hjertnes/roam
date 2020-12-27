@@ -35,12 +35,12 @@ func (d *Dal) Exists(path string) (bool, error){
 	return result, nil
 }
 
-func (d *Dal) GetFiles() ([]string, error){
-	var files []string
+func (d *Dal) GetFiles() ([]models.File, error){
+	var files []models.File
 
 	result, err := d.conn.Query(
 		d.ctx,
-		`select path from files`)
+		`select id, title, path from files`)
 	if err != nil{
 		return files, eris.Wrap(err, "failed to get list of files")
 	}
@@ -73,7 +73,7 @@ func (d *Dal) Delete() error{
 	}
 
 	for _, r := range files{
-		if !utils.FileExist(r){
+		if !utils.FileExist(r.Path){
 			_, err = d.conn.Exec(d.ctx, `delete from files where path=$1`, r)
 			if err != nil{
 				return eris.Wrap(err, "failed to delete file")
@@ -112,7 +112,7 @@ func buildVectorSearch(input string)string{
 
 func (d *Dal) Find(search string) ([]models.File, error){
 	result := make([]models.File, 0)
-	res, err := d.conn.Query(d.ctx, `SELECT path, title FROM files WHERE title_tokens @@ to_tsquery($1);`, buildVectorSearch(search))
+	res, err := d.conn.Query(d.ctx, `SELECT id, path, title FROM files WHERE title_tokens @@ to_tsquery($1);`, buildVectorSearch(search))
 	if err != nil{
 		return result, eris.Wrap(err, "failed to run search query")
 	}
@@ -126,7 +126,7 @@ func (d *Dal) Find(search string) ([]models.File, error){
 
 func (d *Dal) FindExact(search string) ([]models.File, error){
 	result := make([]models.File, 0)
-	res, err := d.conn.Query(d.ctx, `SELECT path, title FROM files WHERE title=$1;`, search)
+	res, err := d.conn.Query(d.ctx, `SELECT id, path, title FROM files WHERE title=$1;`, search)
 	if err != nil{
 		return result, eris.Wrap(err, "failed to run search query")
 	}
@@ -164,3 +164,46 @@ func (d *Dal) Stats() (int, int, int, error){
 
 	return all, public, private, nil
 }
+
+func (d *Dal) AddLink(fileId, linkedToFile string) error{
+	_, err := d.conn.Exec(
+		d.ctx,
+		`insert into links (file_fk, link_fk) values($1, $2) on conflict do nothing`,
+		fileId, linkedToFile)
+	if err != nil{
+		return eris.Wrap(err, "failed to create link")
+	}
+
+	return nil
+}
+
+func (d *Dal) DeleteLink(fileId, linkedToFile string) error{
+	_, err := d.conn.Exec(
+		d.ctx,
+		`delete from links where file_fk=$ and link_fk=$2`, fileId, linkedToFile,
+		fileId, linkedToFile)
+	if err != nil{
+		return eris.Wrap(err, "failed to create link")
+	}
+
+	return nil
+}
+
+func (d *Dal) GetCurrentLinks(fileId string) ([]string, error){
+	result := make([]string, 0)
+	res, err := d.conn.Query(d.ctx, `SELECT link_fk from links WHERE file_fk=$1;`, fileId)
+	if err != nil{
+		return result, eris.Wrap(err, "failed to query for list of links")
+	}
+	err = pgxscan.ScanAll(&result, res)
+	if err != nil{
+		return result, eris.Wrap(err, "failed to scan query for list of links")
+	}
+
+	return result, nil
+}
+
+/*
+GetFileIdsFromPaths
+AddLink
+ */

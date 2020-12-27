@@ -29,23 +29,23 @@ func Diagnostic(path string) error{
 	files, err := dal.GetFiles()
 
 	for _, file := range files {
-		if !utils.FileExist(file){
+		if !utils.FileExist(file.Path){
 			fmt.Printf("%s: doesn't exist\n", file)
 			continue
 		}
 
-		metadata, err := readfile(file)
+		metadata, err := readfile(file.Path)
 
 		if err != nil{
 			fmt.Printf("%s could not read file\n", file)
 			fmt.Println("most likely invalid front matter")
+			continue
 		}
 
 		links := noteLinkRegexp.FindAllString(metadata.Content, -1)
 
 		for _, link := range links{
 			clean := cleanLink(link)
-			matches, err := dal.FindExact(clean)
 			if strings.HasPrefix(clean, "/"){
 				exist1, err := dal.Exists(fmt.Sprintf("%s%s.md", path, clean))
 				if err != nil {
@@ -62,6 +62,7 @@ func Diagnostic(path string) error{
 					continue
 				}
 			}else{
+				matches, err := dal.FindExact(clean)
 				if err != nil{
 					return eris.Wrap(err, "failed to search for link")
 				}
