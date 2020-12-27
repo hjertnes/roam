@@ -3,26 +3,27 @@ package utils
 import (
 	"github.com/hjertnes/utils"
 	"os"
+
 )
 
-func GetPath() string{
+// GetPath returns the value of the ROAM enviornment variable or a default value if not set
+func GetPath() string {
 	path, isSet := os.LookupEnv("ROAM")
 
-	if !isSet{
+	if !isSet {
 		return utils.ExpandTilde("~/txt/roam2")
 	}
 
 	return utils.ExpandTilde(path)
 }
 
-func GetEditor() string{
+// GetEditor returns the value of the EDITOR enviornment variable or a default value if not set
+func GetEditor() string {
 	editor, isSet := os.LookupEnv("EDITOR")
 
-	if !isSet{
+	if !isSet {
 		return "emacs"
 	}
 
 	return editor
 }
-
-

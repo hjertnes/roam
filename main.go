@@ -2,18 +2,19 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/hjertnes/roam/commands"
 	"github.com/hjertnes/roam/configuration"
 	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/utils"
 	"github.com/rotisserie/eris"
-	"os"
-	"time"
 )
 
-func main(){
+func main() {
 	path := utils.GetPath()
-	if len(os.Args) == 1{
+	if len(os.Args) == 1 {
 		commands.Help()
 		return
 	}
@@ -62,7 +63,7 @@ func main(){
 	case "find":
 		err := commands.FindEdit(path)
 		if err != nil {
-			if eris.Is(err, errs.NotFound){
+			if eris.Is(err, errs.NotFound) {
 				fmt.Println("No matches to search query")
 				return
 			}
@@ -80,7 +81,7 @@ func main(){
 		}
 		return
 	case "daily":
-		if len(os.Args) == 2{
+		if len(os.Args) == 2 {
 			conf, err := configuration.ReadConfigurationFile(fmt.Sprintf("%s/.config/config.yaml", path))
 			if err != nil {
 				fmt.Println("Daily failed")
@@ -94,7 +95,7 @@ func main(){
 				return
 			}
 			return
-		} else if len(os.Args) == 3{
+		} else if len(os.Args) == 3 {
 			err := commands.Daily(path, os.Args[2])
 			if err != nil {
 				fmt.Println("Daily failed")

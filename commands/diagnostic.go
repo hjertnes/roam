@@ -3,16 +3,17 @@ package commands
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/hjertnes/roam/configuration"
 	dal2 "github.com/hjertnes/roam/dal"
 	"github.com/hjertnes/utils"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rotisserie/eris"
-	"regexp"
-	"strings"
 )
 
-func Diagnostic(path string) error{
+func Diagnostic(path string) error {
 	conf, err := configuration.ReadConfigurationFile(fmt.Sprintf("%s/.config/config.yaml", path))
 	if err != nil {
 		return eris.Wrap(err, "failed to get config")
@@ -29,14 +30,13 @@ func Diagnostic(path string) error{
 	files, err := dal.GetFiles()
 
 	for _, file := range files {
-		if !utils.FileExist(file.Path){
+		if !utils.FileExist(file.Path) {
 			fmt.Printf("%s: doesn't exist\n", file)
 			continue
 		}
 
 		metadata, err := readfile(file.Path)
-
-		if err != nil{
+		if err != nil {
 			fmt.Printf("%s could not read file\n", file)
 			fmt.Println("most likely invalid front matter")
 			continue
@@ -44,9 +44,9 @@ func Diagnostic(path string) error{
 
 		links := noteLinkRegexp.FindAllString(metadata.Content, -1)
 
-		for _, link := range links{
+		for _, link := range links {
 			clean := cleanLink(link)
-			if strings.HasPrefix(clean, "/"){
+			if strings.HasPrefix(clean, "/") {
 				exist1, err := dal.Exists(fmt.Sprintf("%s%s.md", path, clean))
 				if err != nil {
 					return eris.Wrap(err, "failed to check if link exists")
@@ -57,13 +57,13 @@ func Diagnostic(path string) error{
 					return eris.Wrap(err, "failed to check if link exists")
 				}
 
-				if !exist1 && !exist2{
+				if !exist1 && !exist2 {
 					fmt.Printf("%s no matches for link %s", file, clean)
 					continue
 				}
-			}else{
+			} else {
 				matches, err := dal.FindExact(clean)
-				if err != nil{
+				if err != nil {
 					return eris.Wrap(err, "failed to search for link")
 				}
 
@@ -77,15 +77,14 @@ func Diagnostic(path string) error{
 					continue
 				}
 			}
-
 		}
 	}
 
 	return nil
 }
 
-func cleanLink(input string) string{
+func cleanLink(input string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(input, "[[", ""), "]]", "")
 }
 
-var noteLinkRegexp =  regexp.MustCompile(`\[\[([\d\w\s./]+)]]`)
+var noteLinkRegexp = regexp.MustCompile(`\[\[([\d\w\s./]+)]]`)

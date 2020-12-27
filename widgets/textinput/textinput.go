@@ -2,19 +2,18 @@ package textinput
 
 import (
 	"fmt"
-	"github.com/rotisserie/eris"
-	"github.com/charmbracelet/bubbles/textinput"
+
 	input "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/rotisserie/eris"
 )
 
-func Run(placeholder, label string) (string, error){
+func Run(placeholder, label string) (string, error) {
 	result := make(chan string, 1)
 
 	p := tea.NewProgram(initialModel(result, placeholder, label))
 	err := p.Start()
-
-	if err != nil{
+	if err != nil {
 		return "", eris.Wrap(err, "textinput failed")
 	}
 
@@ -28,8 +27,8 @@ func Run(placeholder, label string) (string, error){
 type errMsg error
 
 type model struct {
-	label string
-	data chan string
+	label     string
+	data      chan string
 	textInput input.Model
 	err       error
 }
@@ -42,15 +41,15 @@ func initialModel(data chan string, placeholder, label string) model {
 	inputModel.Width = 20
 
 	return model{
-		label: label,
+		label:     label,
 		textInput: inputModel,
 		err:       nil,
-		data: data,
+		data:      data,
 	}
 }
 
 func (m model) Init() tea.Cmd {
-	return textinput.Blink
+	return input.Blink
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -72,7 +71,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.err = msg
 		return m, nil
 	}
-
 
 	m.textInput, cmd = m.textInput.Update(msg)
 	return m, cmd

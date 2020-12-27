@@ -1,26 +1,27 @@
 package selectinput
 
 import (
-	"github.com/hjertnes/roam/errs"
-	"github.com/rotisserie/eris"
 	"strings"
 
+
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/hjertnes/roam/errs"
+	"github.com/rotisserie/eris"
 )
 
 type model struct {
 	choices []Choice
-	label string
-	cursor int
-	choice chan Choice
+	label   string
+	cursor  int
+	choice  chan Choice
 }
 
-func Run(label string, choices []Choice) (*Choice, error){
+func Run(label string, choices []Choice) (*Choice, error) {
 	result := make(chan Choice, 1)
 
-	if len(choices)== 0 {
+	if len(choices) == 0 {
 		return nil, eris.Wrap(errs.NotFound, "no choices found")
-	} else if len(choices) == 1{
+	} else if len(choices) == 1 {
 		result <- choices[0]
 	} else {
 		p := tea.NewProgram(initialModel(label, choices, result))
@@ -41,10 +42,10 @@ type Choice struct {
 
 func initialModel(label string, choices []Choice, choice chan Choice) model {
 	return model{
-		label: label,
+		label:   label,
 		choices: choices,
-		cursor: 0,
-		choice: choice,
+		cursor:  0,
+		choice:  choice,
 	}
 }
 
@@ -56,7 +57,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-
 		case "ctrl+c", "q":
 			close(m.choice) // If we're quitting just chose the channel.
 			return m, tea.Quit
@@ -78,7 +78,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor = len(m.choices) - 1
 			}
 		}
-
 	}
 
 	return m, nil

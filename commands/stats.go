@@ -3,13 +3,14 @@ package commands
 import (
 	"context"
 	"fmt"
+
 	"github.com/hjertnes/roam/configuration"
 	dal2 "github.com/hjertnes/roam/dal"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rotisserie/eris"
 )
 
-func Stats(path string) error{
+func Stats(path string) error {
 	conf, err := configuration.ReadConfigurationFile(fmt.Sprintf("%s/.config/config.yaml", path))
 	if err != nil {
 		return eris.Wrap(err, "failed to get config")
@@ -23,7 +24,7 @@ func Stats(path string) error{
 	dal := dal2.New(ctx, pxp)
 
 	all, public, private, err := dal.Stats()
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to get stats")
 	}
 
@@ -33,5 +34,4 @@ func Stats(path string) error{
 	fmt.Println(fmt.Sprintf("Public: %v", public))
 
 	return nil
-
 }

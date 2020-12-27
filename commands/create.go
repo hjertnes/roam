@@ -3,25 +3,25 @@ package commands
 import (
 	"context"
 	"fmt"
-	"github.com/hjertnes/roam/errs"
-	"github.com/hjertnes/roam/models"
-	"github.com/rotisserie/eris"
+	"io/ioutil"
+	"os/exec"
 
 	"github.com/hjertnes/roam/configuration"
 	dal2 "github.com/hjertnes/roam/dal"
+	"github.com/hjertnes/roam/errs"
+	"github.com/hjertnes/roam/models"
 	"github.com/hjertnes/roam/utils"
 	"github.com/hjertnes/roam/widgets/selectinput"
 	"github.com/hjertnes/roam/widgets/textinput"
 	utilslib "github.com/hjertnes/utils"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"io/ioutil"
-	"os/exec"
+	"github.com/rotisserie/eris"
 )
 
-func convertTemplateFiles(templates []models.TemplateFile)[]selectinput.Choice{
+func convertTemplateFiles(templates []models.TemplateFile) []selectinput.Choice {
 	result := make([]selectinput.Choice, 0)
 
-	for _, f := range templates{
+	for _, f := range templates {
 		result = append(result, selectinput.Choice{
 			Title: f.Title,
 			Value: f.Filename,
@@ -45,12 +45,12 @@ func Create(path, filepath string) error {
 
 	dal := dal2.New(ctx, pxp)
 
-	title, err := textinput.Run("The title of your note", "Title: ")//noteTitle.Run()
+	title, err := textinput.Run("The title of your note", "Title: ") //noteTitle.Run()
 	if err != nil {
 		return eris.Wrap(err, "could not get title from textinput")
 	}
 
-	template, err :=  selectinput.Run("Select template", convertTemplateFiles(conf.Templates)) //selectType.Run(conf.Templates)
+	template, err := selectinput.Run("Select template", convertTemplateFiles(conf.Templates)) //selectType.Run(conf.Templates)
 	if err != nil {
 		return eris.Wrap(err, "could not get template selection from selectinput")
 	}
@@ -60,12 +60,12 @@ func Create(path, filepath string) error {
 	}
 
 	templatedata, err := ioutil.ReadFile(fmt.Sprintf("%s/.config/templates/%s", path, template.Value))
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "could not read template")
 	}
 
 	err = createFile(dal, filepath, title, templatedata, conf)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to create file")
 	}
 
@@ -74,10 +74,9 @@ func Create(path, filepath string) error {
 	cmd := exec.Command(editor, filepath)
 
 	err = cmd.Start()
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "could not open file in EDITOR")
 	}
 
 	return nil
 }
-

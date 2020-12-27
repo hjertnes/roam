@@ -7,9 +7,10 @@ import (
 	"io/ioutil"
 	"strings"
 	"time"
+
 )
 
-func createFile(dal *dal2.Dal, filepath, title string, templatedata []byte, conf *models.Configuration) error{
+func createFile(dal *dal2.Dal, filepath, title string, templatedata []byte, conf *models.Configuration) error {
 	now := time.Now()
 
 	noteText := strings.ReplaceAll(string(templatedata), "$$TITLE$$", title)

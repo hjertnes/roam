@@ -3,6 +3,9 @@ package commands
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os/exec"
+
 	"github.com/charmbracelet/glamour"
 	"github.com/ericaro/frontmatter"
 	"github.com/hjertnes/roam/configuration"
@@ -14,13 +17,11 @@ import (
 	"github.com/hjertnes/roam/widgets/textinput"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rotisserie/eris"
-	"io/ioutil"
-	"os/exec"
 )
 
-func FindEdit(path string) error{
+func FindEdit(path string) error {
 	search, err := textinput.Run("Search for a note", "Search: ")
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to get a search string from textinput")
 	}
 
@@ -28,27 +29,24 @@ func FindEdit(path string) error{
 
 	conf, err := configuration.ReadConfigurationFile(fmt.Sprintf("%s/.config/config.yaml", path))
 	if err != nil {
-		return eris.Wrap(err,"failed to get config")
+		return eris.Wrap(err, "failed to get config")
 	}
 
 	ctx := context.Background()
 	pxp, err := pgxpool.Connect(ctx, conf.DatabaseConnectionString)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "could not connect to database")
 	}
 
 	dal := dal2.New(ctx, pxp)
 
 	result, err := dal.Find(search)
-
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to search for files in database")
 	}
 
-
-
 	choice, err := selectinput.Run("Select match", filesToChoices(result))
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to get selection from selectinput")
 	}
 
@@ -57,8 +55,7 @@ func FindEdit(path string) error{
 		{Title: "View", Value: "view"},
 		{Title: "Backlinks", Value: "backlinks"},
 	})
-
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "could not get action")
 	}
 
@@ -74,15 +71,15 @@ func FindEdit(path string) error{
 		return nil
 	}
 
-	if action.Value == "view"{
+	if action.Value == "view" {
 
 		data, err := ioutil.ReadFile(choice.Value)
-		if err != nil{
+		if err != nil {
 			return eris.Wrap(err, "could not read file")
 		}
 		metadata := models.Fm{}
 		err = frontmatter.Unmarshal(data, &metadata)
-		if err != nil{
+		if err != nil {
 			return eris.Wrap(err, "could not unmarkshal frontmatter")
 		}
 
@@ -91,41 +88,40 @@ func FindEdit(path string) error{
 		)
 
 		out, err := r.Render(fmt.Sprintf("# %s\n%s", metadata.Title, metadata.Content))
-		if err != nil{
+		if err != nil {
 			return eris.Wrap(err, "failed to render markdown file")
 		}
 		fmt.Print(out)
 		return nil
 	}
 
-	if action.Value == "backlinks"{
+	if action.Value == "backlinks" {
 		var file *models.File
-		for _, r := range result{
-			if r.Path == choice.Value{
+		for _, r := range result {
+			if r.Path == choice.Value {
 				file = &r
 				break
 			}
 		}
 
-		if file == nil{
+		if file == nil {
 			return eris.Wrap(errs.NotFound, "No file selected")
 		}
 
 		links, err := dal.GetBacklinks(file.Id)
-		if err != nil{
+		if err != nil {
 			return eris.Wrap(err, "could not get backlinks")
 		}
 
 		link, err := selectinput.Run("Select backlink", filesToChoices(links))
-		if err != nil{
+		if err != nil {
 			return eris.Wrap(err, "failed to select backlink")
 		}
 		subAction, err := selectinput.Run("Select action", []selectinput.Choice{
 			{Title: "Edit", Value: "edit"},
 			{Title: "View", Value: "view"},
 		})
-
-		if err != nil{
+		if err != nil {
 			return eris.Wrap(err, "failed to select sub action")
 		}
 
@@ -141,15 +137,15 @@ func FindEdit(path string) error{
 			return nil
 		}
 
-		if subAction.Value == "view"{
+		if subAction.Value == "view" {
 
 			data, err := ioutil.ReadFile(link.Value)
-			if err != nil{
+			if err != nil {
 				return eris.Wrap(err, "could not read file")
 			}
 			metadata := models.Fm{}
 			err = frontmatter.Unmarshal(data, &metadata)
-			if err != nil{
+			if err != nil {
 				return eris.Wrap(err, "could not unmarkshal frontmatter")
 			}
 
@@ -158,7 +154,7 @@ func FindEdit(path string) error{
 			)
 
 			out, err := r.Render(fmt.Sprintf("# %s\n%s", metadata.Title, metadata.Content))
-			if err != nil{
+			if err != nil {
 				return eris.Wrap(err, "failed to render markdown file")
 			}
 			fmt.Print(out)
@@ -166,15 +162,13 @@ func FindEdit(path string) error{
 		}
 	}
 
-
-
 	/*
-	*/
+	 */
 
 	return nil
 }
 
-func filesToChoices(input []models.File)[]selectinput.Choice{
+func filesToChoices(input []models.File) []selectinput.Choice {
 	paths := make([]selectinput.Choice, 0)
 
 	for _, r := range input {

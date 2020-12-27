@@ -6,6 +6,7 @@ import (
 	"github.com/rotisserie/eris"
 	"os"
 	"os/exec"
+
 )
 
 func Edit(path string) error {
@@ -19,7 +20,7 @@ func Edit(path string) error {
 		configFile := fmt.Sprintf("%s/.config/config.yaml", path)
 		cmd := exec.Command(editor, configFile)
 		err := cmd.Start()
-		if err != nil{
+		if err != nil {
 			return eris.Wrap(err, "could not open config in editor")
 		}
 		return nil

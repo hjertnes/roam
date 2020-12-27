@@ -3,14 +3,15 @@ package commands
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os/exec"
+
 	"github.com/hjertnes/roam/configuration"
 	dal2 "github.com/hjertnes/roam/dal"
 	"github.com/hjertnes/roam/utils"
 	utilslib "github.com/hjertnes/utils"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rotisserie/eris"
-	"io/ioutil"
-	"os/exec"
 )
 
 func Daily(path, date string) error {
@@ -29,14 +30,13 @@ func Daily(path, date string) error {
 	filename := fmt.Sprintf("%s/Daily Notes/%s.md", path, date)
 
 	if !utilslib.FileExist(filename) {
-
 		templatedata, err := ioutil.ReadFile(fmt.Sprintf("%s/.config/templates/%s", path, "daily.txt"))
 		if err != nil {
 			return eris.Wrap(err, "failed to read template")
 		}
 
 		err = createFile(dal, filename, "", templatedata, conf)
-		if err != nil{
+		if err != nil {
 			return eris.Wrap(err, "failed to create file")
 		}
 	}
@@ -46,7 +46,7 @@ func Daily(path, date string) error {
 	cmd := exec.Command(editor, filename)
 
 	err = cmd.Start()
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "faield to edit daily in editor")
 	}
 

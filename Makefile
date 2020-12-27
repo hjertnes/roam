@@ -5,6 +5,8 @@ clean:
 	rm roam
 build:
 	go build
+install:
+	mv roam ~/bin/
 cover:
 	go test -p 1 -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
