@@ -72,6 +72,12 @@ func main() {
 	switch os.Args[1] {
 	case "init":
 		err = commands.Init(path)
+	case "publish":
+		to := ""
+		if len(os.Args) > 2{
+			to = os.Args[2]
+		}
+		err = commands.Publish(path, to)
 	case "diagnostic":
 		err = commands.Diagnostic(path)
 	case "edit":

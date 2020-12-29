@@ -13,15 +13,24 @@ I feel more and more like I want to replace org-roam with something of my own
 - Full lint. Started but had some issues
 - Move all models to models
 
-** v0.0.13
-- Lint
-** v0.0.
-- Publish
-- Try to use hugo
-- If it works
-- Build a index at first just a sorted flat list
-- Include backlinks
-- Nested list
+** v0.0.15
+- Use a really simple template system like with the notes
+- Add a flat index page
+*** Plan
+1. Make something that returns folder path and filename based on the bath: example a/b/c/d.html -> a/b/c, d.html
+2. Create folders and write markdown
+
+
+** v0.0.16
+- Replace the internal links with real links
+- Add backlinks
+
+** v0.0.17
+- Nested index links
+
+** v0.0.18
+- Don't include private
+- Option to include it
 
 
 

@@ -47,7 +47,7 @@ func (d *Dal) GetFiles() ([]models.File, error) {
 
 	result, err := d.conn.Query(
 		d.ctx,
-		`select ID, title, path from files`)
+		`select ID, title, path from files order by path`)
 	if err != nil {
 		return files, eris.Wrap(err, "failed to get list of files")
 	}
