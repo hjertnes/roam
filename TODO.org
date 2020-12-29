@@ -12,14 +12,7 @@ I feel more and more like I want to replace org-roam with something of my own
 - Find a way to tell the user there are problems they should deal with
 - Full lint. Started but had some issues
 - Move all models to models
-
-** v0.0.15
-- Use a really simple template system like with the notes
-- Add a flat index page
-*** Plan
-1. Make something that returns folder path and filename based on the bath: example a/b/c/d.html -> a/b/c, d.html
-2. Create folders and write markdown
-
+- Find is broken
 
 ** v0.0.16
 - Replace the internal links with real links

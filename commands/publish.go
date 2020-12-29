@@ -7,6 +7,7 @@ import (
 	"github.com/ericaro/frontmatter"
 	"github.com/hjertnes/roam/configuration"
 	dal2 "github.com/hjertnes/roam/dal"
+	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/models"
 	utilslib "github.com/hjertnes/utils"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -74,6 +75,50 @@ func Publish(path, to string) error{
 			return eris.Wrap(err, "could not unmarkshal frontmatter")
 		}
 
+		links := noteLinkRegexp.FindAllString(metadata.Content, -1)
+
+		for _, link := range links {
+			clean := cleanLink(link)
+
+			if strings.HasPrefix(clean, "/") {
+				exist1, err := dal.Exists(fmt.Sprintf("%s%s.md", path, clean))
+				if err != nil {
+					return eris.Wrap(err, "failed to check if link exists")
+				}
+
+				exist2, err := dal.Exists(fmt.Sprintf("%s%s/index.md", path, clean))
+				if err != nil {
+					return eris.Wrap(err, "failed to check if link exists")
+				}
+
+				if exist1{
+					clean = fmt.Sprintf("%s%s.md", path, clean)
+				} else if exist2{
+					clean = fmt.Sprintf("%s%s.md", path, clean)
+				} else {
+					return eris.Wrap(errs.ErrNotFound, "no match")
+				}
+			} else {
+				matches, err := dal.FindExact(clean)
+				if err != nil {
+					return eris.Wrap(err, "failed to search for link")
+				}
+
+				if len(matches) == 0 {
+					return eris.Wrap(errs.ErrNotFound, "no match for link")
+				}
+
+				if len(matches) > 1 {
+					return eris.Wrap(errs.ErrNotFound, "more than one match for link")
+				}
+				clean = strings.ReplaceAll(matches[0].Path, path, outputDir)
+			}
+
+
+
+			metadata.Content = strings.ReplaceAll(metadata.Content, link, fmt.Sprintf("[%s](%s)", cleanLink(link), fixUrl(strings.ReplaceAll(clean , outputDir, ""))))
+		}
+
 		var buf bytes.Buffer
 		if err := goldmark.Convert([]byte(metadata.Content), &buf); err != nil {
 			return eris.Wrap(err, "failed to build markdown")
@@ -96,6 +141,33 @@ func Publish(path, to string) error{
 		out = strings.ReplaceAll(out, "$$TITLE$$", metadata.Title)
 		out = strings.ReplaceAll(out, "$$TEXT$$", buf.String())
 
+		backlinks := make([]string, 0)
+
+		backlinks = append(backlinks, "## Backlinks")
+
+		bl, err := dal.GetBacklinks(file.ID)
+		if err != nil{
+			return eris.Wrap(err, "coult not get backlinks")
+		}
+
+		for _, l := range bl{
+			lt := fmt.Sprintf("- [%s](%s)", l.Title, fixUrl(strings.ReplaceAll(l.Path , outputDir, "")))
+			backlinks = append(backlinks, lt)
+		}
+
+		buf = bytes.Buffer{}
+
+		if err := goldmark.Convert([]byte(strings.Join(backlinks, "\n")), &buf); err != nil {
+			return eris.Wrap(err, "failed to build markdown")
+		}
+
+		if len(backlinks) > 1{
+			out = strings.ReplaceAll(out, "$$BACKLINKS$$", buf.String())
+		}else {
+			out = strings.ReplaceAll(out, "$$BACKLINKS$$", "")
+		}
+
+
 		err = ioutil.WriteFile(fullFilePath, []byte(out), os.ModePerm)
 		if err != nil{
 			return eris.Wrap(err, "failed to write file")
@@ -112,6 +184,7 @@ func Publish(path, to string) error{
 	out := string(template)
 	out = strings.ReplaceAll(out, "$$TITLE$$", "Index")
 	out = strings.ReplaceAll(out, "$$TEXT$$", buf.String())
+	out = strings.ReplaceAll(out, "$$BACKLINKS$$", "")
 
 	err = ioutil.WriteFile(fmt.Sprintf("%s/index.html", outputDir), []byte(out), os.ModePerm)
 	if err != nil{
@@ -151,5 +224,6 @@ func destructPath(path string)(string, string){
 
 func fixUrl(input string) string{
 	output := strings.ReplaceAll(input, " ", "%20")
+	output = strings.ReplaceAll(output, ".md", ".html")
 	return output
 }

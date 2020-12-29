@@ -41,6 +41,8 @@ const publishTemplate = `<!DOCTYPE html>
 <article>
 <h1>$$TITLE$$</h1>
 <div>$$TEXT$$</div>
+<div<$$BACKLINKS$$</div>
+
 </article>
 </main>
 </body>
