@@ -15,6 +15,7 @@ import (
 	"github.com/yuin/goldmark"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -202,14 +203,30 @@ func Publish(path, to string, excludePrivate bool) error{
 		return eris.Wrap(err, "failed to write file")
 	}
 
-	data, err := ioutil.ReadFile(fmt.Sprintf("%s/.config/publish/style.css", path))
-	if err != nil{
-		return eris.Wrap(err, "failed to read style")
-	}
-	err = ioutil.WriteFile(fmt.Sprintf("%s/style.css", outputDir), data, os.ModePerm)
-	if err != nil{
-		return eris.Wrap(err, "failed to write style")
-	}
+	p := path
+	err = filepath.Walk(fmt.Sprintf("%s/.config/publish", path), func(path string, info os.FileInfo, errr error) error {
+		if info.IsDir(){
+			return nil
+		}
+
+		if strings.HasSuffix(path, ".css") || strings.HasSuffix(path,".js"){
+			to := strings.ReplaceAll(path, fmt.Sprintf("%s/.config/publish", p), outputDir)
+			data, err := ioutil.ReadFile(path)
+			if err != nil{
+				return eris.Wrap(err, "failed to read file")
+			}
+
+			err = ioutil.WriteFile(to, data, os.ModePerm)
+			if err != nil{
+				return eris.Wrap(err, "failed to write file")
+			}
+		}
+
+		return nil
+	})
+
+	/*
+	*/
 
 
 

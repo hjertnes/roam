@@ -3,7 +3,7 @@ package commands
 
 import "fmt"
 
-const version = "0.1.0"
+const version = "0.1.1"
 
 // Help prints help message.
 func Help() {
