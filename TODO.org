@@ -12,20 +12,6 @@ I feel more and more like I want to replace org-roam with something of my own
 - Find a way to tell the user there are problems they should deal with
 - Full lint. Started but had some issues
 - Move all models to models
-- Find is broken
-
-** v0.0.16
-- Replace the internal links with real links
-- Add backlinks
-
-** v0.0.17
-- Nested index links
-
-** v0.0.18
-- Don't include private
-- Option to include it
-
-
 
 ** Script to move from org til md
 find . -name "*.org" -print0 | while read -d $'\0' file

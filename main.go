@@ -76,8 +76,19 @@ func main() {
 		to := ""
 		if len(os.Args) > 2{
 			to = os.Args[2]
+			if to == "--include-private"{
+				to = ""
+			}
 		}
-		err = commands.Publish(path, to)
+		excludePrivate := true
+
+		for _, a := range os.Args{
+			if a == "--include-private"{
+				excludePrivate = false
+			}
+		}
+
+		err = commands.Publish(path, to, excludePrivate)
 	case "diagnostic":
 		err = commands.Diagnostic(path)
 	case "edit":

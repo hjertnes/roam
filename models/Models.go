@@ -18,6 +18,11 @@ type Configuration struct {
 	Templates                []TemplateFile
 }
 
+type Folder struct {
+	ID    string `db:"id"`
+	Path  string `db:"path"`
+}
+
 // Frontmatter is the type for the metadata in a file.
 type Frontmatter struct {
 	Title   string `fm:"title"`
@@ -36,5 +41,6 @@ type PublishFrontmatter struct {
 type File struct {
 	ID    string `db:"id"`
 	Title string `db:"title"`
+	Private bool `db:"private"`
 	Path  string `db:"path"`
 }

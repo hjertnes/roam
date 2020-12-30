@@ -31,7 +31,7 @@ func Sync(path string) error {
 		return eris.Wrap(err, "could not connect to database")
 	}
 
-	dal := dal2.New(ctx, pxp)
+	dal := dal2.New(path, ctx, pxp)
 
 	err = dal.Delete()
 	if err != nil {

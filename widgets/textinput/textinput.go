@@ -3,11 +3,10 @@ package textinput
 
 import (
 	"fmt"
-	"os"
-
 	input "github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/rotisserie/eris"
+	"os"
 )
 
 // Run displays the input and returns the result.
@@ -65,9 +64,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC:
 			fallthrough
 		case tea.KeyEsc:
-			fallthrough
-		case tea.KeyEnter:
 			os.Exit(0)
+		case tea.KeyEnter:
+			m.data <- m.textInput.Value()
+			return m, tea.Quit
 		}
 
 	case errMsg:

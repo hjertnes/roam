@@ -24,7 +24,7 @@ func Stats(path string) error {
 		return eris.Wrap(err, "could not connect to database")
 	}
 
-	dal := dal2.New(ctx, pxp)
+	dal := dal2.New(path, ctx, pxp)
 
 	all, public, private, links, err := dal.Stats()
 	if err != nil {

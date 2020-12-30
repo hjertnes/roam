@@ -28,7 +28,7 @@ func Daily(path, date string) error {
 		return eris.Wrap(err, "could not connect to database")
 	}
 
-	dal := dal2.New(ctx, pxp)
+	dal := dal2.New(path, ctx, pxp)
 
 	filename := fmt.Sprintf("%s/Daily Notes/%s.md", path, date)
 

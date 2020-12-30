@@ -30,7 +30,7 @@ func Create(path, filepath string) error {
 		return eris.Wrap(err, "could not connect to database")
 	}
 
-	dal := dal2.New(ctx, pxp)
+	dal := dal2.New(path, ctx, pxp)
 
 	title, err := textinput.Run("The title of your note", "Title: ")
 	if err != nil {

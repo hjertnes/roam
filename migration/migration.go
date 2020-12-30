@@ -34,10 +34,20 @@ func (m *Migration) v1() error {
 	}
 
 	_, err = m.conn.Exec(m.ctx, `
+create table folders(
+id uuid primary key not null default gen_random_uuid() unique,
+parent_fk uuid null references folders(id),
+path text not null unique
+);`)
+	if err != nil {
+		return eris.Wrap(err, "failed to create folders table")
+	}
+	_, err = m.conn.Exec(m.ctx, `
 create table files(
 id uuid primary key not null default gen_random_uuid() unique, 
 processed_at timestamp not null default timezone('utc', now()),
-path text not null, 
+folder_fk uuid not null references folders(id),
+path text not null unique, 
 title text not null, 
 title_tokens tsvector not null,
 private bool not null,

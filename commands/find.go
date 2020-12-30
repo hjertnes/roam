@@ -34,7 +34,7 @@ func FindEdit(path string) error {
 		return eris.Wrap(err, "could not connect to database")
 	}
 
-	dal := dal2.New(ctx, pxp)
+	dal := dal2.New(path, ctx, pxp)
 
 	result, err := dal.Find(search)
 	if err != nil {

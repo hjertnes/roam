@@ -18,7 +18,7 @@ import (
 	"strings"
 )
 
-func Publish(path, to string) error{
+func Publish(path, to string, excludePrivate bool) error{
 	outputDir := to
 	if to == ""{
 		outputDir = "./output"
@@ -48,14 +48,12 @@ func Publish(path, to string) error{
 		return eris.Wrap(err, "failed to connect to database")
 	}
 
-	dal := dal2.New(ctx, pxp)
+	dal := dal2.New(path, ctx, pxp)
 
 	files, err := dal.GetFiles()
 	if err != nil{
 		return eris.Wrap(err, "failed to get list of files")
 	}
-
-	index := make([]string, 0)
 
 	template, err := ioutil.ReadFile(fmt.Sprintf("%s/.config/publish/template.html", path))
 	if err != nil{
@@ -63,6 +61,9 @@ func Publish(path, to string) error{
 	}
 
 	for _, file := range files{
+		if excludePrivate && file.Private{
+			continue
+		}
 		data, err := ioutil.ReadFile(file.Path)
 		if err != nil{
 			return eris.Wrap(err, "failed to read file")
@@ -74,6 +75,8 @@ func Publish(path, to string) error{
 		if err != nil {
 			return eris.Wrap(err, "could not unmarkshal frontmatter")
 		}
+
+
 
 		links := noteLinkRegexp.FindAllString(metadata.Content, -1)
 
@@ -173,17 +176,25 @@ func Publish(path, to string) error{
 			return eris.Wrap(err, "failed to write file")
 		}
 
-		index = append(index, fmt.Sprintf("- [%s](%s)", strings.ReplaceAll(fullFilePath, outputDir, ""), fixUrl(strings.ReplaceAll(fullFilePath, outputDir, ""))))
 	}
 
-	var buf bytes.Buffer
-	if err := goldmark.Convert([]byte(strings.Join(index, "\n")), &buf); err != nil {
-		return eris.Wrap(err, "failed to build markdown")
+
+
+	root, err := dal.GetRootFolder()
+	if err != nil{
+		return eris.Wrap(err, "failed to get root folder")
 	}
+
+	output := make([]string, 0)
+	output, err = printAndIterate(excludePrivate, path, dal, root, output)
+	if err != nil{
+		return eris.Wrap(err, "failed")
+	}
+
 
 	out := string(template)
 	out = strings.ReplaceAll(out, "$$TITLE$$", "Index")
-	out = strings.ReplaceAll(out, "$$TEXT$$", buf.String())
+	out = strings.ReplaceAll(out, "$$TEXT$$", strings.Join(output, "\n"))
 	out = strings.ReplaceAll(out, "$$BACKLINKS$$", "")
 
 	err = ioutil.WriteFile(fmt.Sprintf("%s/index.html", outputDir), []byte(out), os.ModePerm)
@@ -200,7 +211,52 @@ func Publish(path, to string) error{
 		return eris.Wrap(err, "failed to write style")
 	}
 
+
+
+
+
 	return nil
+}
+
+func getLast(path string) string{
+	elems := strings.Split(path, "/")
+	return elems[len(elems)-1]
+}
+
+func printAndIterate(excludePrivate bool, path string, dal *dal2.Dal, folder *models.Folder, o []string) ([]string, error) {
+	output := o
+	if folder.Path != path {
+		output = append(output, fmt.Sprintf(`<li><a href="%s">%s</a></li>`, strings.ReplaceAll(folder.Path, path, ""), getLast(strings.ReplaceAll(folder.Path, path, ""))))
+	}
+	output = append(output, "<ul>")
+
+	files, err := dal.GetFolderFiles(folder.ID)
+	if err != nil{
+		return output, eris.Wrap(err, "could not get files")
+	}
+	folders, err := dal.GetSubFolders(folder.ID)
+	if err != nil{
+		return output, eris.Wrap(err, "could not get folders")
+	}
+
+	for _, f := range files{
+		if excludePrivate && f.Private{
+			continue
+		}
+		if strings.HasSuffix(f.Path, "index.md"){
+			continue
+		}
+		output = append(output, fmt.Sprintf(`<li><a href="%s">%s</a></li>`, strings.ReplaceAll(strings.ReplaceAll(f.Path, path, ""), ".md", ".html"), f.Title))
+	}
+
+	for _, f := range folders{
+		output, err = printAndIterate(excludePrivate, path, dal, &f, output)
+		if err != nil{
+			return output, eris.Wrap(err, "failed to iterate over folder")
+		}
+	}
+	output = append(output, "</ul>")
+	return output, nil
 }
 
 func destructPath(path string)(string, string){

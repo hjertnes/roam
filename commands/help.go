@@ -3,7 +3,7 @@ package commands
 
 import "fmt"
 
-const version = "0.0.15-dev"
+const version = "0.0.18"
 
 // Help prints help message.
 func Help() {
@@ -22,6 +22,8 @@ func Help() {
 	fmt.Printf("\tfind\tsearch for a note to viewNote, editNote or show the backlinks of\n")
 	fmt.Printf("\tdiagnostic\tshows issues with your notes\n")
 	fmt.Printf("\treport\tlists your notes and the links and backlinks of them\n")
+	fmt.Printf("\tpublish\tbuilds a html version of your database\n")
+	fmt.Printf("\t\t defaults to exclude private notes, can be enabled with --include-privaste")
 	fmt.Printf("\teditNote")
 	fmt.Printf("\t\tconfig\topens config file in EDITOR")
 }

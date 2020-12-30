@@ -15,13 +15,15 @@ import (
 
 // Dal is the exported type.
 type Dal struct {
+	path string
 	ctx  context.Context
 	conn *pgxpool.Pool
 }
 
 // New is the constructor.
-func New(ctx context.Context, conn *pgxpool.Pool) *Dal {
+func New(path string, ctx context.Context, conn *pgxpool.Pool) *Dal {
 	return &Dal{
+		path: path,
 		ctx:  ctx,
 		conn: conn,
 	}
@@ -47,7 +49,7 @@ func (d *Dal) GetFiles() ([]models.File, error) {
 
 	result, err := d.conn.Query(
 		d.ctx,
-		`select ID, title, path from files order by path`)
+		`select ID, title, path, private from files order by path`)
 	if err != nil {
 		return files, eris.Wrap(err, "failed to get list of files")
 	}
@@ -60,15 +62,142 @@ func (d *Dal) GetFiles() ([]models.File, error) {
 	return files, nil
 }
 
+func getPath(path string) string{
+	res := make([]string, 0)
+
+	elems := strings.Split(path, "/")
+
+	for _, e := range elems{
+		if strings.HasSuffix(e, ".md"){
+			continue
+		}
+
+		res = append(res, e)
+	}
+
+	return strings.Join(res, "/")
+}
+
+func getParent(path string) string{
+	res := make([]string, 0)
+
+	elems := strings.Split(path, "/")
+
+	for i, e := range elems{
+		if i == len(elems) -1{
+			continue
+		}
+
+		res = append(res, e)
+	}
+
+	return strings.Join(res, "/")
+}
+//TODO
+// add if not exist
+// get folderid
+func (d *Dal) GetFolder(path string) (string, error){
+	var id string
+	res := d.conn.QueryRow(d.ctx, `select id from folders where path=$1`, path)
+	err := res.Scan(&id)
+	if err != nil {
+		return "", eris.Wrap(err, "failed to get folder")
+	}
+
+	return id, nil
+}
+
+func (d *Dal) GetFolderFiles(folderId string) ([]models.File, error){
+	var files []models.File
+
+	result, err := d.conn.Query(
+		d.ctx,
+		`select ID, title, path, private from files where folder_fk=$1 order by path`, folderId)
+	if err != nil {
+		return files, eris.Wrap(err, "failed to get list of files")
+	}
+
+	err = pgxscan.ScanAll(&files, result)
+	if err != nil {
+		return files, eris.Wrap(err, "could not parse")
+	}
+
+	return files, nil
+}
+
+func (d *Dal) GetSubFolders(folderId string) ([]models.Folder, error){
+	var result []models.Folder
+
+	q, err := d.conn.Query(d.ctx, `select id, path from folders where parent_fk=$1`, folderId)
+	if err != nil{
+		return result, eris.Wrap(err, "could not get sub folder")
+	}
+
+	err = pgxscan.ScanAll(&result, q)
+	if err != nil{
+		return result, eris.Wrap(err, "could not get sub folder")
+	}
+
+	return result, nil
+}
+
+func (d *Dal) GetRootFolder() (*models.Folder, error){
+	q, err := d.conn.Query(d.ctx, `select id, path from folders where parent_fk is null`)
+	if err != nil{
+		return nil, eris.Wrap(err, "could not get root folder")
+	}
+	var result []models.Folder
+
+	err = pgxscan.ScanAll(&result, q)
+	if err != nil{
+		return nil, eris.Wrap(err, "could not get root folder")
+	}
+
+	return &result[0], nil
+}
+
+func (d *Dal) CreateFolder(path string) error{
+	parentId := utils.NilStringPointer()
+
+	if path != d.path {
+		p := getParent(path)
+		err := d.CreateFolder(p)
+		if err != nil{
+			return eris.Wrap(err, "failed to create parent folder")
+		}
+		pp, err := d.GetFolder(p)
+		parentId = &pp
+		if err != nil{
+			return eris.Wrap(err, "failed to get parent folder")
+		}
+	}
+	_, err := d.conn.Exec(d.ctx, `insert into folders (path, parent_fk) values($1, $2) on conflict do nothing`, path, parentId)
+	if err != nil {
+		return eris.Wrap(err, "failed to create folder")
+	}
+
+	return nil
+}
+
 // Create adds new file to database.
 func (d *Dal) Create(path, title, content string, private bool) error {
-	_, err := d.conn.Exec(
+	p := getPath(path)
+	err := d.CreateFolder(p)
+	if err != nil{
+		return eris.Wrap(err, "failed to create folder")
+	}
+	folderId, err := d.GetFolder(p)
+	if err != nil{
+		return eris.Wrap(err, "failed to get folder")
+	}
+
+	_, err = d.conn.Exec(
 		d.ctx,
 		`
 insert into files 
-(processed_at, path, title, title_tokens, content, content_tokens, private) 
-values(timezone('utc', now()), $1, $2, to_tsvector($2), $3, to_tsvector($3), $4)`,
-		path, title, content, private)
+(processed_at, path, title, title_tokens, content, content_tokens, private, folder_fk) 
+values(timezone('utc', now()), $1, $2, to_tsvector($2), $3, to_tsvector($3), $4, $5)`,
+		path, title, content, private, folderId)
 	if err != nil {
 		return eris.Wrap(err, "failed to create file")
 	}
@@ -133,7 +262,7 @@ func (d *Dal) Find(search string) ([]models.File, error) {
 	result := make([]models.File, 0)
 
 	res, err := d.conn.Query(d.ctx, `
-SELECT ID, path, title 
+SELECT ID, path, title, private
 FROM files 
 WHERE title_tokens @@ to_tsquery($1);`, buildVectorSearch(search))
 	if err != nil {
@@ -152,7 +281,7 @@ WHERE title_tokens @@ to_tsquery($1);`, buildVectorSearch(search))
 func (d *Dal) FindExact(search string) ([]models.File, error) {
 	result := make([]models.File, 0)
 
-	res, err := d.conn.Query(d.ctx, `SELECT ID, path, title FROM files WHERE title=$1;`, search)
+	res, err := d.conn.Query(d.ctx, `SELECT ID, path, title, private FROM files WHERE title=$1;`, search)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to run search query")
 	}
@@ -245,7 +374,7 @@ func (d *Dal) GetBacklinks(fileID string) ([]models.File, error) {
 	result := make([]models.File, 0)
 
 	res, err := d.conn.Query(d.ctx, `
-select ID, path, title from files where ID in 
+select ID, path, title, private from files where ID in 
 (SELECT file_fk from links WHERE link_fk=$1);`, fileID)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to query for list of links")
@@ -265,7 +394,7 @@ func (d *Dal) GetLinks(fileID string) ([]models.File, error) {
 
 	res, err := d.conn.Query(
 		d.ctx, `
-select ID, path, title from files where ID in 
+select ID, path, title, private from files where ID in 
 (SELECT link_fk from links WHERE file_fk=$1);`, fileID)
 	if err != nil {
 		return result, eris.Wrap(err, "failed to query for list of links")
