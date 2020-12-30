@@ -225,9 +225,6 @@ func Publish(path, to string, excludePrivate bool) error{
 		return nil
 	})
 
-	/*
-	*/
-
 
 
 
@@ -242,10 +239,7 @@ func getLast(path string) string{
 
 func printAndIterate(excludePrivate bool, path string, dal *dal2.Dal, folder *models.Folder, o []string) ([]string, error) {
 	output := o
-	if folder.Path != path {
-		output = append(output, fmt.Sprintf(`<li><a href="%s">%s</a></li>`, strings.ReplaceAll(folder.Path, path, ""), getLast(strings.ReplaceAll(folder.Path, path, ""))))
-	}
-	output = append(output, "<ul>")
+
 
 	files, err := dal.GetFolderFiles(folder.ID)
 	if err != nil{
@@ -255,6 +249,19 @@ func printAndIterate(excludePrivate bool, path string, dal *dal2.Dal, folder *mo
 	if err != nil{
 		return output, eris.Wrap(err, "could not get folders")
 	}
+
+	for _, f := range files{
+		if excludePrivate && f.Private{
+			continue
+		}
+		if strings.HasSuffix(f.Path, "index.md"){
+			if folder.Path != path {
+				output = append(output, fmt.Sprintf(`<li><a href="%s">%s</a></li>`, strings.ReplaceAll(folder.Path, path, ""), getLast(strings.ReplaceAll(folder.Path, path, ""))))
+			}
+		}
+	}
+
+	output = append(output, "<ul>")
 
 	for _, f := range files{
 		if excludePrivate && f.Private{
