@@ -30,13 +30,6 @@ type Frontmatter struct {
 	Content string `fm:"content"`
 }
 
-type PublishFrontmatter struct {
-	Title   string `fm:"title"`
-	Url string  `fm:"url"`
-	Type string  `fm:"type"`
-	Content string `fm:"content"`
-}
-
 // File is the database model for a file or note.
 type File struct {
 	ID    string `db:"id"`
