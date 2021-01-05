@@ -2,6 +2,8 @@ package create
 
 import (
 	"fmt"
+	"github.com/hjertnes/roam/commands/help"
+	"github.com/hjertnes/roam/constants"
 	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/state"
 	"github.com/hjertnes/roam/utils"
@@ -18,6 +20,18 @@ import (
 
 type Create struct {
 	state *state.State
+}
+
+func (c *Create) Run() error {
+	switch len(os.Args) {
+	case constants.Two:
+		return c.DailyToday()
+	case constants.Three:
+		return c.Daily(os.Args[2])
+	default:
+		help.Run()
+		return nil
+	}
 }
 
 func (c *Create) CreateFile(filepath string) error {

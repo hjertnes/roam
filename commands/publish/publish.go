@@ -21,7 +21,22 @@ import (
 	"strings"
 )
 
-func Run(path, to string, excludePrivate bool) error{
+func Run(path string) error{
+	to := ""
+	if len(os.Args) > 2{
+		to = os.Args[2]
+		if to == "--include-private"{
+			to = ""
+		}
+	}
+	excludePrivate := true
+
+	for _, a := range os.Args{
+		if a == "--include-private"{
+			excludePrivate = false
+		}
+	}
+
 	s, err := state.New(path)
 	if err != nil{
 		return eris.Wrap(err, "failed to create state")

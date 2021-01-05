@@ -245,3 +245,15 @@ func ReadfileImport(data string) (*models.ImportFrontmatter, error) {
 
 	return &metadata, nil
 }
+
+func ErrorHandler(err error) {
+	if err != nil {
+		if eris.Is(err, errs.ErrNotFound) {
+			fmt.Println("No matches to search query")
+		}
+		fmt.Println("Error")
+		fmt.Println(eris.ToString(err, true))
+
+		os.Exit(0)
+	}
+}
