@@ -2,6 +2,7 @@
 package selectinput
 
 import (
+	"github.com/hjertnes/roam/models"
 	"os"
 	"strings"
 
@@ -11,10 +12,10 @@ import (
 )
 
 type model struct {
-	choices []Choice
+	choices []models.Choice
 	label   string
 	cursor  int
-	choice  chan Choice
+	choice  chan models.Choice
 }
 
 const (
@@ -23,8 +24,8 @@ const (
 )
 
 // Run displays the select and returns the result.
-func Run(label string, choices []Choice) (*Choice, error) {
-	result := make(chan Choice, 1)
+func Run(label string, choices []models.Choice) (*models.Choice, error) {
+	result := make(chan models.Choice, 1)
 
 	switch len(choices) {
 	case zero:
@@ -43,13 +44,9 @@ func Run(label string, choices []Choice) (*Choice, error) {
 	return &r, nil
 }
 
-// Choice is the type for the options.
-type Choice struct {
-	Title string
-	Value string
-}
 
-func initialModel(label string, choices []Choice, choice chan Choice) model {
+
+func initialModel(label string, choices []models.Choice, choice chan models.Choice) model {
 	return model{
 		label:   label,
 		choices: choices,

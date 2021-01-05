@@ -1,20 +1,19 @@
-package commands
+package find
 
 import (
-	"context"
 	"fmt"
 	"github.com/hjertnes/roam/models"
+	"github.com/hjertnes/roam/state"
 
-	"github.com/hjertnes/roam/configuration"
+
 	dal2 "github.com/hjertnes/roam/dal"
 	"github.com/hjertnes/roam/utils"
 	"github.com/hjertnes/roam/widgets/selectinput"
 	"github.com/hjertnes/roam/widgets/textinput"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rotisserie/eris"
 )
 
-func FindEdit(path string) error {
+func Run(path string) error {
 	search, err := textinput.Run("Search for a note", "Search: ")
 	if err != nil {
 		return eris.Wrap(err, "failed to get a search string from textinput")
@@ -22,21 +21,13 @@ func FindEdit(path string) error {
 
 	fmt.Println("Loading...")
 
-	conf, err := configuration.ReadConfigurationFile(fmt.Sprintf("%s/.config/config.yaml", path))
-	if err != nil {
-		return eris.Wrap(err, "failed to get config")
+	s, err := state.New(path)
+	if err != nil{
+		return eris.Wrap(err, "Failed to create state")
 	}
 
-	ctx := context.Background()
 
-	pxp, err := pgxpool.Connect(ctx, conf.DatabaseConnectionString)
-	if err != nil {
-		return eris.Wrap(err, "could not connect to database")
-	}
-
-	dal := dal2.New(path, ctx, pxp)
-
-	result, err := dal.Find(search)
+	result, err := s.Dal.FindFileFuzzy(search)
 	if err != nil {
 		return eris.Wrap(err, "failed to search for files in database")
 	}
@@ -53,7 +44,7 @@ func FindEdit(path string) error {
 		return eris.Wrap(err, "should not happen")
 	}
 
-	action, err := selectinput.Run("Select action", []selectinput.Choice{
+	action, err := selectinput.Run("Select action", []models.Choice{
 		{Title: "Edit", Value: "editNote"},
 		{Title: "View", Value: "viewNote"},
 		{Title: "Backlinks", Value: "backlinks"},
@@ -79,7 +70,7 @@ func FindEdit(path string) error {
 	}
 
 	if action.Value == "backlinks" {
-		err := showBacklinks(dal, file, result)
+		err := showBacklinks(s.Dal, file, result)
 		if err != nil{
 			return eris.Wrap(err, "backlinks failed")
 		}
@@ -88,7 +79,7 @@ func FindEdit(path string) error {
 	return nil
 }
 
-func showBacklinks(dal *dal2.Dal, file *models.File, result []models.File) error{
+func showBacklinks(dal dal2.Dal, file *models.File, result []models.File) error{
 	links, err := dal.GetBacklinks(file.ID)
 	if err != nil {
 		return eris.Wrap(err, "could not get backlinks")
@@ -106,7 +97,7 @@ func showBacklinks(dal *dal2.Dal, file *models.File, result []models.File) error
 		return eris.Wrap(err, "should not happen")
 	}
 
-	subAction, err := selectinput.Run("Select action", []selectinput.Choice{
+	subAction, err := selectinput.Run("Select action", []models.Choice{
 		{Title: "Edit", Value: "editNote"},
 		{Title: "View", Value: "viewNote"},
 	})

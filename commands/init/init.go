@@ -1,13 +1,12 @@
-package commands
+package init
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-
 	"github.com/hjertnes/roam/configuration"
 	utilslib "github.com/hjertnes/utils"
 	"github.com/rotisserie/eris"
+	"io/ioutil"
+	"os"
 )
 
 const defaultTemplate = `---
@@ -49,7 +48,7 @@ const publishTemplate = `<!DOCTYPE html>
 </html>`
 
 // Init creates a config file.
-func Init(path string) error {
+func Run(path string) error {
 	configFolder := fmt.Sprintf("%s/.config", path)
 	configFile := fmt.Sprintf("%s/config.yaml", configFolder)
 
@@ -105,3 +104,4 @@ func Init(path string) error {
 
 	return nil
 }
+

@@ -14,14 +14,10 @@ I feel more and more like I want to replace org-roam with something of my own
 - Docs
 - Cleanup
 - Option to clear database
-** Other
-- Fix all the \" etc issues in my notes
-- Two killing eve notes
-
-** v.0.1.3
-- Split dal into seperate repos (Folder, Link and File)
-- Add a State object that deals with reading config setting up repos etc
-- Migrate each command into a seperate sub-package that use the state package
+- Find the correct file permissons to use
+- Add flag to getbacklinks and getlinks for private or not
+- Add support for just searching in find
+- Re-do the cli interfaces to not use the bubble tea stuff
 
 ** Script to move from org til md
 find . -name "*.org" -print0 | while read -d $'\0' file

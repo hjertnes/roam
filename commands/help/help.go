@@ -1,14 +1,13 @@
-// Package commands contains all the commands.
-package commands
+package help
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/hjertnes/roam/constants"
+)
 
-const version = "0.1.2"
-
-// Help prints help message.
-func Help() {
+func Run() {
 	fmt.Printf("roam\n")
-	fmt.Printf("Version: %s\n", version)
+	fmt.Printf("Version: %s\n", constants.Version)
 	fmt.Printf("A command line utility that will replace my use of org-roam\n")
 	fmt.Printf("\n")
 	fmt.Printf("Usage:\n")
@@ -27,3 +26,4 @@ func Help() {
 	fmt.Printf("\teditNote")
 	fmt.Printf("\t\tconfig\topens config file in EDITOR")
 }
+

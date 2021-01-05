@@ -1,16 +1,18 @@
-package commands
+package publish
 
 import (
 	"bytes"
-	"context"
+
 	"fmt"
 	"github.com/ericaro/frontmatter"
-	"github.com/hjertnes/roam/configuration"
+
 	dal2 "github.com/hjertnes/roam/dal"
 	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/models"
+	"github.com/hjertnes/roam/state"
+	"github.com/hjertnes/roam/utils"
 	utilslib "github.com/hjertnes/utils"
-	"github.com/jackc/pgx/v4/pgxpool"
+
 	"github.com/rotisserie/eris"
 	"github.com/yuin/goldmark"
 	"io/ioutil"
@@ -19,7 +21,12 @@ import (
 	"strings"
 )
 
-func Publish(path, to string, excludePrivate bool) error{
+func Run(path, to string, excludePrivate bool) error{
+	s, err := state.New(path)
+	if err != nil{
+		return eris.Wrap(err, "failed to create state")
+	}
+
 	outputDir := to
 	if to == ""{
 		outputDir = "./output"
@@ -32,26 +39,14 @@ func Publish(path, to string, excludePrivate bool) error{
 		}
 	}
 
-	err := os.MkdirAll(outputDir, os.ModePerm)
+	err = os.MkdirAll(outputDir, os.ModePerm)
 	if err != nil{
 		return eris.Wrap(err, "failed to create output dir")
 	}
 
-	conf, err := configuration.ReadConfigurationFile(fmt.Sprintf("%s/.config/config.yaml", path))
-	if err != nil {
-		return eris.Wrap(err, "failed to get config")
-	}
 
-	ctx := context.Background()
 
-	pxp, err := pgxpool.Connect(ctx, conf.DatabaseConnectionString)
-	if err != nil {
-		return eris.Wrap(err, "failed to connect to database")
-	}
-
-	dal := dal2.New(path, ctx, pxp)
-
-	files, err := dal.GetFiles()
+	files, err := s.Dal.GetFiles()
 	if err != nil{
 		return eris.Wrap(err, "failed to get list of files")
 	}
@@ -79,18 +74,18 @@ func Publish(path, to string, excludePrivate bool) error{
 
 
 
-		links := noteLinkRegexp.FindAllString(metadata.Content, -1)
+		links := utils.NoteLinkRegexp.FindAllString(metadata.Content, -1)
 
 		for _, link := range links {
-			clean := cleanLink(link)
+			clean := utils.CleanLink(link)
 
 			if strings.HasPrefix(clean, "/") {
-				exist1, err := dal.Exists(fmt.Sprintf("%s%s.md", path, clean))
+				exist1, err := s.Dal.FileExists(fmt.Sprintf("%s%s.md", path, clean))
 				if err != nil {
 					return eris.Wrap(err, "failed to check if link exists")
 				}
 
-				exist2, err := dal.Exists(fmt.Sprintf("%s%s/index.md", path, clean))
+				exist2, err := s.Dal.FileExists(fmt.Sprintf("%s%s/index.md", path, clean))
 				if err != nil {
 					return eris.Wrap(err, "failed to check if link exists")
 				}
@@ -103,7 +98,7 @@ func Publish(path, to string, excludePrivate bool) error{
 					return eris.Wrap(errs.ErrNotFound, "no match")
 				}
 			} else {
-				matches, err := dal.FindExact(clean)
+				matches, err := s.Dal.FindFileExact(clean)
 				if err != nil {
 					return eris.Wrap(err, "failed to search for link")
 				}
@@ -120,7 +115,7 @@ func Publish(path, to string, excludePrivate bool) error{
 
 
 
-			metadata.Content = strings.ReplaceAll(metadata.Content, link, fmt.Sprintf("[%s](%s)", cleanLink(link), fixUrl(strings.ReplaceAll(clean , outputDir, ""))))
+			metadata.Content = strings.ReplaceAll(metadata.Content, link, fmt.Sprintf("[%s](%s)", utils.CleanLink(link), utils.FixUrl(strings.ReplaceAll(clean , outputDir, ""))))
 		}
 
 		var buf bytes.Buffer
@@ -130,7 +125,7 @@ func Publish(path, to string, excludePrivate bool) error{
 
 		filePath := strings.ReplaceAll(file.Path, path, outputDir)
 
-		folderPath, filename := destructPath(filePath)
+		folderPath, filename := utils.DestructPath(filePath)
 
 		if !utilslib.FileExist(folderPath){
 			err = os.MkdirAll(folderPath, os.ModePerm)
@@ -149,13 +144,13 @@ func Publish(path, to string, excludePrivate bool) error{
 
 		backlinks = append(backlinks, "## Backlinks")
 
-		bl, err := dal.GetBacklinks(file.ID)
+		bl, err := s.Dal.GetBacklinks(file.ID)
 		if err != nil{
 			return eris.Wrap(err, "coult not get backlinks")
 		}
 
 		for _, l := range bl{
-			lt := fmt.Sprintf("- [%s](%s)", l.Title, fixUrl(strings.ReplaceAll(l.Path , outputDir, "")))
+			lt := fmt.Sprintf("- [%s](%s)", l.Title, utils.FixUrl(strings.ReplaceAll(l.Path , outputDir, "")))
 			backlinks = append(backlinks, lt)
 		}
 
@@ -181,13 +176,13 @@ func Publish(path, to string, excludePrivate bool) error{
 
 
 
-	root, err := dal.GetRootFolder()
+	root, err := s.Dal.GetRootFolder()
 	if err != nil{
 		return eris.Wrap(err, "failed to get root folder")
 	}
 
 	output := make([]string, 0)
-	output, err = printAndIterate(excludePrivate, path, dal, root, output)
+	output, err = buildIndex(excludePrivate, path, s.Dal, root, output)
 	if err != nil{
 		return eris.Wrap(err, "failed")
 	}
@@ -225,19 +220,10 @@ func Publish(path, to string, excludePrivate bool) error{
 		return nil
 	})
 
-
-
-
-
 	return nil
 }
 
-func getLast(path string) string{
-	elems := strings.Split(path, "/")
-	return elems[len(elems)-1]
-}
-
-func printAndIterate(excludePrivate bool, path string, dal *dal2.Dal, folder *models.Folder, o []string) ([]string, error) {
+func buildIndex(excludePrivate bool, path string, dal dal2.Dal, folder *models.Folder, o []string) ([]string, error) {
 	output := o
 
 
@@ -256,7 +242,7 @@ func printAndIterate(excludePrivate bool, path string, dal *dal2.Dal, folder *mo
 		}
 		if strings.HasSuffix(f.Path, "index.md"){
 			if folder.Path != path {
-				output = append(output, fmt.Sprintf(`<li><a href="%s">%s</a></li>`, strings.ReplaceAll(folder.Path, path, ""), getLast(strings.ReplaceAll(folder.Path, path, ""))))
+				output = append(output, fmt.Sprintf(`<li><a href="%s">%s</a></li>`, strings.ReplaceAll(folder.Path, path, ""), utils.GetLast(strings.ReplaceAll(folder.Path, path, ""))))
 			}
 		}
 	}
@@ -274,36 +260,11 @@ func printAndIterate(excludePrivate bool, path string, dal *dal2.Dal, folder *mo
 	}
 
 	for _, f := range folders{
-		output, err = printAndIterate(excludePrivate, path, dal, &f, output)
+		output, err = buildIndex(excludePrivate, path, dal, &f, output)
 		if err != nil{
 			return output, eris.Wrap(err, "failed to iterate over folder")
 		}
 	}
 	output = append(output, "</ul>")
 	return output, nil
-}
-
-func destructPath(path string)(string, string){
-	elems := strings.Split(path, "/")
-
-	folderPath := make([]string, 0)
-	filename := ""
-
-	lastElem := len(elems)-1
-
-	for i, e := range elems{
-		if i == lastElem{
-			filename=e
-		} else {
-			folderPath = append(folderPath, e)
-		}
-	}
-
-	return strings.Join(folderPath, "/"), strings.ReplaceAll(filename, ".md", ".html")
-}
-
-func fixUrl(input string) string{
-	output := strings.ReplaceAll(input, " ", "%20")
-	output = strings.ReplaceAll(output, ".md", ".html")
-	return output
 }

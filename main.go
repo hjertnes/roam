@@ -2,14 +2,21 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"time"
-
-	"github.com/hjertnes/roam/commands"
-	"github.com/hjertnes/roam/configuration"
+	"github.com/hjertnes/roam/commands/create"
+	"github.com/hjertnes/roam/commands/diagnostic"
+	"github.com/hjertnes/roam/commands/edit"
+	"github.com/hjertnes/roam/commands/find"
+	"github.com/hjertnes/roam/commands/help"
+	iinit "github.com/hjertnes/roam/commands/init"
+	"github.com/hjertnes/roam/commands/migrate"
+	"github.com/hjertnes/roam/commands/publish"
+	"github.com/hjertnes/roam/commands/report"
+	"github.com/hjertnes/roam/commands/stats"
+	"github.com/hjertnes/roam/commands/sync"
 	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/utils"
 	"github.com/rotisserie/eris"
+	"os"
 )
 
 const (
@@ -26,8 +33,8 @@ func errorHandler(err error) {
 	}
 }
 
-func find(path string) {
-	err := commands.FindEdit(path)
+func f(path string) {
+	err := find.Run(path)
 	if err != nil {
 		if eris.Is(err, errs.ErrNotFound) {
 			fmt.Println("No matches to search query")
@@ -42,19 +49,19 @@ func find(path string) {
 }
 
 func daily(path string) {
+	c, err := create.New(path)
+	errorHandler(err)
+
 	switch len(os.Args) {
 	case two:
-		conf, err := configuration.ReadConfigurationFile(fmt.Sprintf("%s/.config/config.yaml", path))
+		err = c.DailyToday()
 		errorHandler(err)
-		err = commands.Daily(path, time.Now().Format(conf.DateFormat))
-		errorHandler(err)
-
 		return
 	case three:
-		err := commands.Daily(path, os.Args[2])
+		err := c.Daily(os.Args[2])
 		errorHandler(err)
 	default:
-		commands.Help()
+		help.Run()
 	}
 }
 
@@ -62,7 +69,7 @@ func main() {
 	path := utils.GetPath()
 
 	if len(os.Args) == 1 {
-		commands.Help()
+		help.Run()
 
 		return
 	}
@@ -71,7 +78,7 @@ func main() {
 
 	switch os.Args[1] {
 	case "init":
-		err = commands.Init(path)
+		err = iinit.Run(path)
 	case "publish":
 		to := ""
 		if len(os.Args) > 2{
@@ -88,28 +95,37 @@ func main() {
 			}
 		}
 
-		err = commands.Publish(path, to, excludePrivate)
+		err = publish.Run(path, to, excludePrivate)
 	case "diagnostic":
-		err = commands.Diagnostic(path)
+		err = diagnostic.Run(path)
 	case "edit":
-		err = commands.Edit(path)
+		err = edit.Run(path)
 	case "migrate":
-		err = commands.Migrate(path)
+		err = migrate.Run(path)
 	case "sync":
-		err = commands.Sync(path)
+		err = sync.Run(path)
 	case "find":
-		find(path)
+		f(path)
 	case "create":
-		err = commands.Create(path, os.Args[2])
+		c, err := create.New(path)
+		if err != nil{
+			break
+		}
+		err = c.CreateFile(os.Args[2])
+	case "import":
+		c, err := create.New(path)
+		errorHandler(err)
+		err = c.Import(os.Args[2])
+		errorHandler(err)
 	case "report":
-		err = commands.Report(path)
+		err = report.Run(path)
 	case "daily":
 		daily(path)
 	case "stats":
-		err = commands.Stats(path)
+		err = stats.Run(path)
 
 	default:
-		commands.Help()
+		help.Run()
 	}
 
 	errorHandler(err)

@@ -1,20 +1,18 @@
-package commands
+package edit
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
-
+	"github.com/hjertnes/roam/commands/help"
+	"github.com/hjertnes/roam/constants"
 	"github.com/hjertnes/roam/utils"
 	"github.com/rotisserie/eris"
+	"os"
+	"os/exec"
 )
 
-const two = 2
-
-// Edit opens something in editor.
-func Edit(path string) error {
-	if len(os.Args) == two {
-		Help()
+func Run(path string) error {
+	if len(os.Args) == constants.Two {
+		help.Run()
 	}
 
 	switch os.Args[2] {
@@ -30,7 +28,7 @@ func Edit(path string) error {
 
 		return nil
 	default:
-		Help()
+		help.Run()
 
 		return nil
 	}

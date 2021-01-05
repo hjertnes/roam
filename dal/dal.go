@@ -3,26 +3,42 @@ package dal
 
 import (
 	"context"
-	"fmt"
-	"strings"
-
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/hjertnes/roam/models"
-	"github.com/hjertnes/utils"
+	"github.com/hjertnes/roam/utils"
+	utilslib "github.com/hjertnes/utils"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rotisserie/eris"
 )
 
 // Dal is the exported type.
-type Dal struct {
+
+type Dal interface {
+	FileExists(path string) (bool, error)
+	GetFiles() ([]models.File, error)
+	GetFolderFiles(folderId string) ([]models.File, error)
+	GetSubFolders(folderId string) ([]models.Folder, error)
+	GetRootFolder() (*models.Folder, error)
+	CreateFile(path, title, content string, private bool) error
+	DeleteFiles() error
+	UpdateFile(path, title, content string, private bool) error
+	FindFileFuzzy(search string) ([]models.File, error)
+	FindFileExact(search string) ([]models.File, error)
+	Stats() (int, int, int, int, error)
+	AddLink(fileID, linkedToFile string) error
+	DeleteLink(fileID, linkedToFile string) error
+	GetBacklinks(fileID string) ([]models.File, error)
+	GetLinks(fileID string) ([]models.File, error)
+}
+type dal struct {
 	path string
 	ctx  context.Context
 	conn *pgxpool.Pool
 }
 
 // New is the constructor.
-func New(path string, ctx context.Context, conn *pgxpool.Pool) *Dal {
-	return &Dal{
+func New(path string, ctx context.Context, conn *pgxpool.Pool) Dal {
+	return &dal{
 		path: path,
 		ctx:  ctx,
 		conn: conn,
@@ -30,7 +46,7 @@ func New(path string, ctx context.Context, conn *pgxpool.Pool) *Dal {
 }
 
 // Exists checks if a row with the path exists.
-func (d *Dal) Exists(path string) (bool, error) {
+func (d *dal) FileExists(path string) (bool, error) {
 	res := d.conn.QueryRow(d.ctx, `select exists (select 1 from files where path=$1)`, path)
 
 	var result bool
@@ -44,7 +60,7 @@ func (d *Dal) Exists(path string) (bool, error) {
 }
 
 // GetFiles returns all files in database/.
-func (d *Dal) GetFiles() ([]models.File, error) {
+func (d *dal) GetFiles() ([]models.File, error) {
 	var files []models.File
 
 	result, err := d.conn.Query(
@@ -62,41 +78,7 @@ func (d *Dal) GetFiles() ([]models.File, error) {
 	return files, nil
 }
 
-func getPath(path string) string{
-	res := make([]string, 0)
-
-	elems := strings.Split(path, "/")
-
-	for _, e := range elems{
-		if strings.HasSuffix(e, ".md"){
-			continue
-		}
-
-		res = append(res, e)
-	}
-
-	return strings.Join(res, "/")
-}
-
-func getParent(path string) string{
-	res := make([]string, 0)
-
-	elems := strings.Split(path, "/")
-
-	for i, e := range elems{
-		if i == len(elems) -1{
-			continue
-		}
-
-		res = append(res, e)
-	}
-
-	return strings.Join(res, "/")
-}
-//TODO
-// add if not exist
-// get folderid
-func (d *Dal) GetFolder(path string) (string, error){
+func (d *dal) getFolder(path string) (string, error){
 	var id string
 	res := d.conn.QueryRow(d.ctx, `select id from folders where path=$1`, path)
 	err := res.Scan(&id)
@@ -107,7 +89,7 @@ func (d *Dal) GetFolder(path string) (string, error){
 	return id, nil
 }
 
-func (d *Dal) GetFolderFiles(folderId string) ([]models.File, error){
+func (d *dal) GetFolderFiles(folderId string) ([]models.File, error){
 	var files []models.File
 
 	result, err := d.conn.Query(
@@ -125,7 +107,7 @@ func (d *Dal) GetFolderFiles(folderId string) ([]models.File, error){
 	return files, nil
 }
 
-func (d *Dal) GetSubFolders(folderId string) ([]models.Folder, error){
+func (d *dal) GetSubFolders(folderId string) ([]models.Folder, error){
 	var result []models.Folder
 
 	q, err := d.conn.Query(d.ctx, `select id, path from folders where parent_fk=$1`, folderId)
@@ -141,7 +123,7 @@ func (d *Dal) GetSubFolders(folderId string) ([]models.Folder, error){
 	return result, nil
 }
 
-func (d *Dal) GetRootFolder() (*models.Folder, error){
+func (d *dal) GetRootFolder() (*models.Folder, error){
 	q, err := d.conn.Query(d.ctx, `select id, path from folders where parent_fk is null`)
 	if err != nil{
 		return nil, eris.Wrap(err, "could not get root folder")
@@ -156,16 +138,16 @@ func (d *Dal) GetRootFolder() (*models.Folder, error){
 	return &result[0], nil
 }
 
-func (d *Dal) CreateFolder(path string) error{
-	parentId := utils.NilStringPointer()
+func (d *dal) createFolder(path string) error{
+	parentId := utilslib.NilStringPointer()
 
 	if path != d.path {
-		p := getParent(path)
-		err := d.CreateFolder(p)
+		p := utils.GetParent(path)
+		err := d.createFolder(p)
 		if err != nil{
 			return eris.Wrap(err, "failed to create parent folder")
 		}
-		pp, err := d.GetFolder(p)
+		pp, err := d.getFolder(p)
 		parentId = &pp
 		if err != nil{
 			return eris.Wrap(err, "failed to get parent folder")
@@ -180,13 +162,13 @@ func (d *Dal) CreateFolder(path string) error{
 }
 
 // Create adds new file to database.
-func (d *Dal) Create(path, title, content string, private bool) error {
-	p := getPath(path)
-	err := d.CreateFolder(p)
+func (d *dal) CreateFile(path, title, content string, private bool) error {
+	p := utils.RemoveFilenameFromPath(path)
+	err := d.createFolder(p)
 	if err != nil{
 		return eris.Wrap(err, "failed to create folder")
 	}
-	folderId, err := d.GetFolder(p)
+	folderId, err := d.getFolder(p)
 	if err != nil{
 		return eris.Wrap(err, "failed to get folder")
 	}
@@ -206,15 +188,16 @@ values(timezone('utc', now()), $1, $2, to_tsvector($2), $3, to_tsvector($3), $4,
 }
 
 // Delete removes all files from database that don't exist on the file system.
-func (d *Dal) Delete() error {
+func (d *dal) DeleteFiles() error {
 	files, err := d.GetFiles()
 	if err != nil {
 		return eris.Wrap(err, "failed to get list of files")
 	}
 
 	for _, r := range files {
-		if !utils.FileExist(r.Path) {
-			_, err = d.conn.Exec(d.ctx, `delete from files where path=$1`, r)
+		if !utilslib.FileExist(r.Path) {
+			_, err = d.conn.Exec(d.ctx, `delete from links where file_fk=$1`, r.ID)
+			_, err = d.conn.Exec(d.ctx, `delete from files where id=$1`, r.ID)
 			if err != nil {
 				return eris.Wrap(err, "failed to delete file")
 			}
@@ -225,7 +208,7 @@ func (d *Dal) Delete() error {
 }
 
 // Update updates a file.
-func (d *Dal) Update(path, title, content string, private bool) error {
+func (d *dal) UpdateFile(path, title, content string, private bool) error {
 	_, err := d.conn.Exec(
 		d.ctx,
 		`
@@ -243,28 +226,14 @@ private=$4 where path=$1`,
 	return nil
 }
 
-func buildVectorSearch(input string) string {
-	if !strings.Contains(input, " ") {
-		return fmt.Sprintf("%s:*", input)
-	}
-
-	output := make([]string, 0)
-
-	for _, l := range strings.Split(input, " ") {
-		output = append(output, fmt.Sprintf("%s:*", l))
-	}
-
-	return strings.Join(output, "&")
-}
-
 // Find returns a list of notes that match a search.
-func (d *Dal) Find(search string) ([]models.File, error) {
+func (d *dal) FindFileFuzzy(search string) ([]models.File, error) {
 	result := make([]models.File, 0)
 
 	res, err := d.conn.Query(d.ctx, `
 SELECT ID, path, title, private
 FROM files 
-WHERE title_tokens @@ to_tsquery($1);`, buildVectorSearch(search))
+WHERE title_tokens @@ to_tsquery($1);`, utils.BuildVectorSearch(search))
 	if err != nil {
 		return result, eris.Wrap(err, "failed to run search query")
 	}
@@ -278,7 +247,7 @@ WHERE title_tokens @@ to_tsquery($1);`, buildVectorSearch(search))
 }
 
 // FindExact returns a list of notes with an exact title.
-func (d *Dal) FindExact(search string) ([]models.File, error) {
+func (d *dal) FindFileExact(search string) ([]models.File, error) {
 	result := make([]models.File, 0)
 
 	res, err := d.conn.Query(d.ctx, `SELECT ID, path, title, private FROM files WHERE title=$1;`, search)
@@ -295,7 +264,7 @@ func (d *Dal) FindExact(search string) ([]models.File, error) {
 }
 
 // Stats returns stats.
-func (d *Dal) Stats() (int, int, int, int, error) {
+func (d *dal) Stats() (int, int, int, int, error) {
 	var all, private, public, links int
 
 	res1 := d.conn.QueryRow(d.ctx, "select count(*) from files")
@@ -327,7 +296,7 @@ func (d *Dal) Stats() (int, int, int, int, error) {
 }
 
 // AddLink adds a link.
-func (d *Dal) AddLink(fileID, linkedToFile string) error {
+func (d *dal) AddLink(fileID, linkedToFile string) error {
 	_, err := d.conn.Exec(
 		d.ctx,
 		`insert into links (file_fk, link_fk) values($1, $2) on conflict do nothing`,
@@ -340,11 +309,10 @@ func (d *Dal) AddLink(fileID, linkedToFile string) error {
 }
 
 // DeleteLink removes a link from a file.
-func (d *Dal) DeleteLink(fileID, linkedToFile string) error {
+func (d *dal) DeleteLink(fileID, linkedToFile string) error {
 	_, err := d.conn.Exec(
 		d.ctx,
-		`delete from links where file_fk=$ and link_fk=$2`, fileID, linkedToFile,
-		fileID, linkedToFile)
+		`delete from links where file_fk=$1 and link_fk=$2`, fileID, linkedToFile)
 	if err != nil {
 		return eris.Wrap(err, "failed to create link")
 	}
@@ -352,25 +320,8 @@ func (d *Dal) DeleteLink(fileID, linkedToFile string) error {
 	return nil
 }
 
-// GetCurrentLinks returns the path of all links of a file.
-func (d *Dal) GetCurrentLinks(fileID string) ([]string, error) {
-	result := make([]string, 0)
-
-	res, err := d.conn.Query(d.ctx, `SELECT link_fk from links WHERE file_fk=$1;`, fileID)
-	if err != nil {
-		return result, eris.Wrap(err, "failed to query for list of links")
-	}
-
-	err = pgxscan.ScanAll(&result, res)
-	if err != nil {
-		return result, eris.Wrap(err, "failed to scan query for list of links")
-	}
-
-	return result, nil
-}
-
 // GetBacklinks returns the backlinks of a file.
-func (d *Dal) GetBacklinks(fileID string) ([]models.File, error) {
+func (d *dal) GetBacklinks(fileID string) ([]models.File, error) {
 	result := make([]models.File, 0)
 
 	res, err := d.conn.Query(d.ctx, `
@@ -389,7 +340,7 @@ select ID, path, title, private from files where ID in
 }
 
 // GetLinks returns the links of a file.
-func (d *Dal) GetLinks(fileID string) ([]models.File, error) {
+func (d *dal) GetLinks(fileID string) ([]models.File, error) {
 	result := make([]models.File, 0)
 
 	res, err := d.conn.Query(
