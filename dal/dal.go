@@ -197,6 +197,8 @@ func (d *dal) DeleteFiles() error {
 	for _, r := range files {
 		if !utilslib.FileExist(r.Path) {
 			_, err = d.conn.Exec(d.ctx, `delete from links where file_fk=$1`, r.ID)
+			_, err = d.conn.Exec(d.ctx, `delete from links where link_fk=$1`, r.ID)
+
 			_, err = d.conn.Exec(d.ctx, `delete from files where id=$1`, r.ID)
 			if err != nil {
 				return eris.Wrap(err, "failed to delete file")

@@ -5,6 +5,10 @@ I feel more and more like I want to replace org-roam with something of my own
 - Create template
 - Edit template
 - Upgrade: migrates config
+- Delete folders in sync
+
+* v0.2.1
+- docs
 
 ** Later
 - Interactive mode that will give you a dropdown of options to replace it with and edit file option

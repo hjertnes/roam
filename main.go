@@ -23,6 +23,13 @@ func getCreateCommand(path string) *create.Create{
 	return c
 }
 
+func getFindCommand(path string) *find.Find{
+	c, err := find.New(path)
+	utils.ErrorHandler(err)
+
+	return c
+}
+
 func main() {
 	path := utils.GetPath()
 
@@ -46,7 +53,7 @@ func main() {
 	case "sync":
 		utils.ErrorHandler(sync.Run(path))
 	case "find":
-		utils.ErrorHandler(find.Run(path))
+		utils.ErrorHandler(getFindCommand(path).Run())
 	case "create":
 		utils.ErrorHandler(getCreateCommand(path).CreateFile(os.Args[2]))
 	case "import":

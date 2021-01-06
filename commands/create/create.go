@@ -7,8 +7,8 @@ import (
 	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/state"
 	"github.com/hjertnes/roam/utils"
-	"github.com/hjertnes/roam/widgets/selectinput"
-	"github.com/hjertnes/roam/widgets/textinput"
+	"github.com/hjertnes/roam/widgets/selectinput2"
+	"github.com/hjertnes/roam/widgets/textinput2"
 	utilslib "github.com/hjertnes/utils"
 	"github.com/rotisserie/eris"
 	"io/ioutil"
@@ -35,14 +35,13 @@ func (c *Create) Run() error {
 }
 
 func (c *Create) CreateFile(filepath string) error {
-	title, err := textinput.Run("The title of your note", "Title: ")
+	title, err := textinput2.Run("Title")
 	if err != nil {
 		return eris.Wrap(err, "could not get title from textinput")
 	}
 
-	template, err := selectinput.Run(
-		"Select template",
-		utils.ConvertTemplateFiles(c.state.Conf.Templates))
+	template, err := selectinput2.Run(
+		utils.ConvertTemplateFiles(c.state.Conf.Templates), "Template")
 
 	if err != nil {
 		return eris.Wrap(err, "could not get template selection from selectinput")

@@ -2,123 +2,196 @@ package find
 
 import (
 	"fmt"
+	"github.com/hjertnes/roam/commands/help"
+	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/models"
 	"github.com/hjertnes/roam/state"
+	"github.com/hjertnes/roam/widgets/selectinput2"
+	"github.com/hjertnes/roam/widgets/textinput2"
+	"os"
+	"strings"
 
-
-	dal2 "github.com/hjertnes/roam/dal"
 	"github.com/hjertnes/roam/utils"
-	"github.com/hjertnes/roam/widgets/selectinput"
-	"github.com/hjertnes/roam/widgets/textinput"
 	"github.com/rotisserie/eris"
 )
 
-func Run(path string) error {
-	search, err := textinput.Run("Search for a note", "Search: ")
-	if err != nil {
-		return eris.Wrap(err, "failed to get a search string from textinput")
-	}
+type Find struct {
+	state *state.State
+	subcommand string
+	backlinksFlag bool
+	linksFlag bool
+}
 
-	fmt.Println("Loading...")
-
+func New(path string) (*Find, error){
 	s, err := state.New(path)
 	if err != nil{
-		return eris.Wrap(err, "Failed to create state")
+		return nil, eris.Wrap(err, "Failed to create state")
 	}
 
-
-	result, err := s.Dal.FindFileFuzzy(search)
-	if err != nil {
-		return eris.Wrap(err, "failed to search for files in database")
+	f := &Find{
+		state: s,
+		backlinksFlag: false,
+		linksFlag: false,
 	}
 
-	fmt.Println("Loading...")
+	if len(os.Args) == 2  || strings.HasPrefix(os.Args[2], "--"){
+		f.subcommand = "query"
+	} else {
+		subCommand := os.Args[2]
 
-	choice, err := selectinput.Run("Select match", utils.FilesToChoices(result))
-	if err != nil {
-		return eris.Wrap(err, "failed to get selection from selectinput")
-	}
 
-	file, err := utils.GetFile(result, choice.Value)
-	if err != nil {
-		return eris.Wrap(err, "should not happen")
-	}
-
-	action, err := selectinput.Run("Select action", []models.Choice{
-		{Title: "Edit", Value: "editNote"},
-		{Title: "View", Value: "viewNote"},
-		{Title: "Backlinks", Value: "backlinks"},
-	})
-	if err != nil {
-		return eris.Wrap(err, "could not get action")
-	}
-
-	if action.Value == "editNote" {
-		err = utils.EditNote(file.Path)
-		if err != nil {
-			return eris.Wrap(err, "failed to edit file")
+		if subCommand == "query" || subCommand == "edit" || subCommand == "view"{
+			f.subcommand = subCommand
+		} else {
+			help.Run()
+			os.Exit(0)
 		}
 	}
 
-	if action.Value == "viewNote" {
-		err = utils.ViewNote(file.Path)
-		if err != nil {
-			return eris.Wrap(err, "failed to show file")
+	for _, arg := range os.Args{
+		if arg == "--backlinks"{
+			f.backlinksFlag = true
 		}
 
+		if arg == "--links"{
+			f.linksFlag = true
+		}
+	}
+
+	return f, nil
+
+}
+
+func (f *Find) getResults(query string) ([]models.File, error){
+	spinner, err := utils.BuildSpinner("Loading")
+	if err != nil{
+		return make([]models.File, 0), eris.Wrap(err, "failed to build spinner")
+	}
+
+	err = spinner.Start()
+	if err != nil{
+		return make([]models.File, 0), eris.Wrap(err, "failed to start spinner")
+	}
+
+	result, err := f.state.Dal.FindFileFuzzy(query)
+	if err != nil {
+		return make([]models.File, 0), eris.Wrap(err, "failed to search for files in database")
+	}
+
+	err = spinner.Stop()
+	if err != nil{
+		return make([]models.File, 0), eris.Wrap(err, "failed to start spinner")
+	}
+
+	return result, nil
+}
+
+func (f *Find) query(files []models.File){
+	for i := range files{
+		fmt.Printf("- %s\n", files[i].Path)
+	}
+}
+
+func (f *Find) selectFile(result []models.File) (*models.File, error){
+	var choice *models.File
+
+	c, err := selectinput2.Run(utils.FilesToChoices(result), "Select file")
+	if err != nil{
+		return nil, eris.Wrap(err, "failed to get selection from user")
+	}
+
+	for i := range result{
+		if result[i].ID == c.Value{
+			choice = &result[i]
+			break
+		}
+	}
+
+	if choice == nil{
+		return nil, eris.Wrap(errs.ErrNoValue, "this should not happen")
+	}
+
+	return choice, nil
+}
+
+func (f *Find) Run() error {
+	search, err := textinput2.Run("Search for file")
+	if err != nil{
+		return eris.Wrap(err, "failed to get search input from user")
+	}
+
+	result, err := f.getResults(search)
+	if err != nil{
+		return eris.Wrap(err, "failed to get search result")
+	}
+
+	if f.subcommand == "query" && !f.backlinksFlag && !f.linksFlag{
+		f.query(result)
 		return nil
 	}
 
-	if action.Value == "backlinks" {
-		err := showBacklinks(s.Dal, file, result)
+	var choice *models.File
+
+	if len(result) == 0{
+		fmt.Println("No files matches your query")
+	} else if len(result) == 1{
+		choice = &result[0]
+	} else {
+		choice, err = f.selectFile(result)
 		if err != nil{
-			return eris.Wrap(err, "backlinks failed")
+			return eris.Wrap(err, "failed to select file")
+		}
+
+		var links []models.File
+
+		if f.linksFlag{
+			links, err = f.state.Dal.GetLinks(choice.ID)
+			if err != nil{
+				return eris.Wrap(err, "failed to get links")
+			}
+		}
+
+		if f.backlinksFlag{
+			links, err = f.state.Dal.GetBacklinks(choice.ID)
+			if err != nil{
+				return eris.Wrap(err, "failed to get links")
+			}
+		}
+
+		if f.subcommand == "query" {
+			f.query(links)
+			return nil
+		}
+
+
+		if (f.linksFlag || f.backlinksFlag) && (f.subcommand == "edit" || f.subcommand == "view"){
+			if len(links) == 0{
+				fmt.Println("No files match your query")
+			} else if len(links) == 1{
+				choice = &links[0]
+			} else {
+				choice, err = f.selectFile(links)
+				if err != nil{
+					return eris.Wrap(err, "failed to select file")
+				}
+			}
 		}
 	}
 
-	return nil
-}
-
-func showBacklinks(dal dal2.Dal, file *models.File, result []models.File) error{
-	links, err := dal.GetBacklinks(file.ID)
-	if err != nil {
-		return eris.Wrap(err, "could not get backlinks")
-	}
-
-	fmt.Println("Loading...")
-
-	link, err := selectinput.Run("Select backlink", utils.FilesToChoices(links))
-	if err != nil {
-		return eris.Wrap(err, "failed to select backlink")
-	}
-
-	file2, err := utils.GetFile(result, link.Value)
-	if err != nil {
-		return eris.Wrap(err, "should not happen")
-	}
-
-	subAction, err := selectinput.Run("Select action", []models.Choice{
-		{Title: "Edit", Value: "editNote"},
-		{Title: "View", Value: "viewNote"},
-	})
-	if err != nil {
-		return eris.Wrap(err, "failed to select sub action")
-	}
-
-	if subAction.Value == "editNote" {
-		err = utils.EditNote(file2.Path)
+	if f.subcommand == "edit"{
+		err = utils.EditNote(choice.Path)
 		if err != nil {
 			return eris.Wrap(err, "failed to edit file")
 		}
+		return nil
 	}
 
-	if subAction.Value == "viewNote" {
-		err = utils.ViewNote(file2.Path)
+	if f.subcommand == "view"{
+		err = utils.ViewNote(choice.Path)
 		if err != nil {
-			return eris.Wrap(err, "failed to show file")
+			return eris.Wrap(err, "failed to edit file")
 		}
-
-
+		return nil
 	}
 
 	return nil
