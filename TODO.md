@@ -19,10 +19,10 @@ I feel more and more like I want to replace org-roam with something of my own
 - Find replace the ugly output with markdown
 - Add a configuration thing for what will be moved during publish e.g css/js etc
 - Error if --links and --backlinks are set
+- version command
+- partial sync
 
 ## Upcoming versions
-### v0.0.2.2
-- better help
 ### v0.2.3
 - more loaders / spinners
 

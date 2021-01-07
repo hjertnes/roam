@@ -140,6 +140,11 @@ Opens the configuration in EDITOR. In the future this will be extended to more f
 
 Look in the formats section for details on the format. But it will read the file and create notes based on it, if there isn't a file like it that exist yet. 
 
+### Daily
+`roam daily`
+`roam daily [date-string]`
+
+This creates a new "daily note" in the Daily Notes directory. It uses the Daily Notes template
 ### Diagnostic
 `roam diagnostic`
 
