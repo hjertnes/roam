@@ -1,16 +1,11 @@
-* Plan to replace org-roam with something of my own
+# Plan to replace org-roam with something of my own
 I feel more and more like I want to replace org-roam with something of my own
 
-** Features
+## TODO
 - Create template
 - Edit template
 - Upgrade: migrates config
 - Delete folders in sync
-
-* v0.2.1
-- docs
-
-** Later
 - Interactive mode that will give you a dropdown of options to replace it with and edit file option
 - Find a way to tell the user there are problems they should deal with
 - Full lint. Started but had some issues
@@ -20,13 +15,17 @@ I feel more and more like I want to replace org-roam with something of my own
 - Option to clear database
 - Find the correct file permissons to use
 - Add flag to getbacklinks and getlinks for private or not
-- Add support for just searching in find
-- Re-do the cli interfaces to not use the bubble tea stuff
+- Import dry run
+- Find replace the ugly output with markdown
+- Add a configuration thing for what will be moved during publish e.g css/js etc
+- Error if --links and --backlinks are set
 
-** Script to move from org til md
-find . -name "*.org" -print0 | while read -d $'\0' file
-do
-    echo "$file"
-    pandoc "$file" -s -o "${file/.org/.md}"
-    rm "$file"
-done
+## Upcoming versions
+### v0.0.2.2
+- better help
+### v0.2.3
+- more loaders / spinners
+
+
+
+

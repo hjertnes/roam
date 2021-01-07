@@ -52,6 +52,13 @@ func Run(path string) error {
 	configFolder := fmt.Sprintf("%s/.config", path)
 	configFile := fmt.Sprintf("%s/config.yaml", configFolder)
 
+	if !utilslib.FileExist(path){
+		err := os.MkdirAll(path, 0600)
+		if err != nil {
+			return eris.Wrap(err, "could not create data folder")
+		}
+	}
+
 	if !utilslib.FileExist(configFolder) {
 		err := os.Mkdir(configFolder, 0600)
 		if err != nil {

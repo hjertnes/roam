@@ -219,7 +219,7 @@ func Run(path string) error{
 			return nil
 		}
 
-		if strings.HasSuffix(path, ".css") || strings.HasSuffix(path,".js"){
+		if strings.HasSuffix(strings.ToLower(path), ".css") || strings.HasSuffix(strings.ToLower(path),".js") || strings.HasSuffix(strings.ToLower(path),".jpg") || strings.HasSuffix(strings.ToLower(path),".jpeg") || strings.HasSuffix(strings.ToLower(path),".png") {
 			to := strings.ReplaceAll(path, fmt.Sprintf("%s/.config/publish", p), outputDir)
 			data, err := ioutil.ReadFile(path)
 			if err != nil{
