@@ -3,6 +3,7 @@ package stats
 import (
 	"fmt"
 	"github.com/hjertnes/roam/state"
+	spinner2 "github.com/hjertnes/roam/widgets/spinner"
 	"github.com/rotisserie/eris"
 )
 
@@ -13,9 +14,24 @@ func Run(path string) error {
 		return eris.Wrap(err, "Failed to create state")
 	}
 
+	spinner, err := spinner2.Run("")
+	if err != nil{
+		return eris.Wrap(err, "failed to create spinner")
+	}
+
+	err = spinner.Start()
+	if err != nil{
+		return eris.Wrap(err, "failed to start spinner")
+	}
+
 	all, public, private, links, err := s.Dal.Stats()
 	if err != nil {
 		return eris.Wrap(err, "failed to get stats")
+	}
+
+	err = spinner.Stop()
+	if err != nil{
+		return eris.Wrap(err, "failed to stop spinner")
 	}
 
 	fmt.Println("Stats")

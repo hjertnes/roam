@@ -21,11 +21,8 @@ I feel more and more like I want to replace org-roam with something of my own
 - Error if --links and --backlinks are set
 - version command
 - partial sync
-
+- fix output in diagnostic
+  
+  {49e18c76-fcb8-43c8-9bde-0704cfe1eca1 Wiki %!s(bool=false) /Users/hjertnes/txt/roam/Projects/Websites/Wiki.md} no matches for link Wiki TODO
+- Import: too many newlines 
 ## Upcoming versions
-### v0.2.3
-- more loaders / spinners
-
-
-
-

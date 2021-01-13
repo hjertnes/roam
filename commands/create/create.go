@@ -64,7 +64,7 @@ func (c *Create) CreateFile(filepath string) error {
 
 	editor := utils.GetEditor()
 
-	cmd := exec.Command(editor, filepath) // #nosec G204
+	cmd := exec.Command(editor, fmt.Sprintf("%s/%s", c.state.Path, filepath)) // #nosec G204
 
 	err = cmd.Start()
 	if err != nil {

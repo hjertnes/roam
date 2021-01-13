@@ -3,22 +3,18 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"regexp"
-	"strings"
-	"time"
-
 	"github.com/charmbracelet/glamour"
 	"github.com/ericaro/frontmatter"
 	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/models"
 	"github.com/hjertnes/utils"
 	"github.com/rotisserie/eris"
-
-	"github.com/theckman/yacspin"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
+	"strings"
 )
 
 // GetPath returns the value of the ROAM environment variable or a default value if not set.
@@ -247,25 +243,6 @@ func ReadfileImport(data string) (*models.ImportFrontmatter, error) {
 	}
 
 	return &metadata, nil
-}
-
-func BuildSpinner(message string) (*yacspin.Spinner, error){
-	cfg := yacspin.Config{
-		Frequency:       100 * time.Millisecond,
-		CharSet:         yacspin.CharSets[69],
-		Suffix:          fmt.Sprintf(" %s", message),
-		SuffixAutoColon: true,
-		Message:         "",
-		StopCharacter:   "✓",
-		StopColors:      []string{"fgGreen"},
-	}
-
-	spinner, err := yacspin.New(cfg)
-	if err != nil{
-		return nil, eris.Wrap(err, "failed to create spinner")
-	}
-
-	return spinner, nil
 }
 
 func ErrorHandler(err error) {

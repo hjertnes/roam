@@ -7,6 +7,7 @@ import (
 	"github.com/hjertnes/roam/models"
 	"github.com/hjertnes/roam/state"
 	"github.com/hjertnes/roam/widgets/selectinput2"
+	spinner2 "github.com/hjertnes/roam/widgets/spinner"
 	"github.com/hjertnes/roam/widgets/textinput2"
 	"os"
 	"strings"
@@ -63,24 +64,9 @@ func New(path string) (*Find, error){
 }
 
 func (f *Find) getResults(query string) ([]models.File, error){
-	spinner, err := utils.BuildSpinner("Loading")
-	if err != nil{
-		return make([]models.File, 0), eris.Wrap(err, "failed to build spinner")
-	}
-
-	err = spinner.Start()
-	if err != nil{
-		return make([]models.File, 0), eris.Wrap(err, "failed to start spinner")
-	}
-
 	result, err := f.state.Dal.FindFileFuzzy(query)
 	if err != nil {
 		return make([]models.File, 0), eris.Wrap(err, "failed to search for files in database")
-	}
-
-	err = spinner.Stop()
-	if err != nil{
-		return make([]models.File, 0), eris.Wrap(err, "failed to start spinner")
 	}
 
 	return result, nil
@@ -120,9 +106,25 @@ func (f *Find) Run() error {
 		return eris.Wrap(err, "failed to get search input from user")
 	}
 
+	spinner, err := spinner2.Run("")
+	if err != nil{
+		return eris.Wrap(err, "failed to build spinner")
+	}
+
+	err = spinner.Start()
+	if err != nil{
+		return eris.Wrap(err, "failed to start spinner")
+	}
+
+
 	result, err := f.getResults(search)
 	if err != nil{
 		return eris.Wrap(err, "failed to get search result")
+	}
+
+	err = spinner.Stop()
+	if err != nil{
+		return eris.Wrap(err, "failed to stop spinner")
 	}
 
 	if f.subcommand == "query" && !f.backlinksFlag && !f.linksFlag{
@@ -144,6 +146,12 @@ func (f *Find) Run() error {
 
 		var links []models.File
 
+		err = spinner.Start()
+		if err != nil{
+			return eris.Wrap(err, "failed to start spinner")
+		}
+
+
 		if f.linksFlag{
 			links, err = f.state.Dal.GetLinks(choice.ID)
 			if err != nil{
@@ -156,6 +164,11 @@ func (f *Find) Run() error {
 			if err != nil{
 				return eris.Wrap(err, "failed to get links")
 			}
+		}
+
+		err = spinner.Stop()
+		if err != nil{
+			return eris.Wrap(err, "failed to stop spinner")
 		}
 
 		if f.subcommand == "query" {

@@ -2,6 +2,7 @@ package publish
 
 import (
 	"bytes"
+	spinner2 "github.com/hjertnes/roam/widgets/spinner"
 
 	"fmt"
 	"github.com/ericaro/frontmatter"
@@ -40,6 +41,16 @@ func Run(path string) error{
 	s, err := state.New(path)
 	if err != nil{
 		return eris.Wrap(err, "failed to create state")
+	}
+
+	spinner, err := spinner2.Run("")
+	if err != nil{
+		return eris.Wrap(err, "failed to create spinner")
+	}
+
+	err = spinner.Start()
+	if err != nil{
+		return eris.Wrap(err, "failed to start spinner")
 	}
 
 	outputDir := to
@@ -234,6 +245,11 @@ func Run(path string) error{
 
 		return nil
 	})
+
+	err = spinner.Stop()
+	if err != nil{
+		return eris.Wrap(err, "failed to stop spinner")
+	}
 
 	return nil
 }
