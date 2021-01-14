@@ -60,7 +60,7 @@ func main() {
 	case "create":
 		utils.ErrorHandler(getCreateCommand(path).CreateFile(os.Args[2]))
 	case "import":
-		utils.ErrorHandler(getCreateCommand(path).Import(os.Args[2]))
+		utils.ErrorHandler(getCreateCommand(path).RunImport())
 	case "report":
 		utils.ErrorHandler(report.Run(path))
 	case "daily":

@@ -141,8 +141,11 @@ Currently this only creates notes, but this will be extended to creating templat
 Opens the configuration in EDITOR. In the future this will be extended to more features like editing templates etc
 ### Import
 `roam import ~/file/to/import.md`
+`roam import ~/file/to/import.md --dry`
 
 Look in the formats section for details on the format. But it will read the file and create notes based on it, if there isn't a file like it that exist yet. 
+
+Use the --dry option to test before writing it to the database
 
 ### Daily
 `roam daily`

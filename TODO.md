@@ -14,16 +14,16 @@ I feel more and more like I want to replace org-roam with something of my own
 - Add a configuration thing for what will be moved during publish e.g css/js etc
 - Error if --links and --backlinks are set
 - partial sync
+- Some input validating msising on some commands
 
 ## Upcoming versions
-### v0.2.7
-- Use better file perms
-### v0.2.8
+
+### v0.2.
 - Clear config
 - Clear database
 
+### v0.2.
+- Create a changelog.md
 
-
-### v0.2.9
-- Import dry run
-- Import: too many newlines
+## v0.2.
+- Linting

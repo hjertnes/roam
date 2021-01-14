@@ -88,7 +88,36 @@ func (c *Create) DailyToday() error {
 	return c.Daily(time.Now().Format(c.state.Conf.DateFormat))
 }
 
-func (c *Create) Import(file string) error{
+func (c *Create) RunImport() error{
+	var file string
+	var dryRun = false
+
+	for i := range os.Args {
+		if i <= 1 {
+			continue
+		}
+
+		if os.Args[i] == "--dry" {
+			dryRun = true
+		} else {
+			file = os.Args[i]
+		}
+	}
+
+	if file == ""{
+		help.Run()
+		os.Exit(0)
+	}
+
+	err := c.Import(file, dryRun)
+	if err != nil{
+		return eris.Wrap(err, "failed to import")
+	}
+
+	return nil
+}
+
+func (c *Create) Import(file string, dryRun bool) error{
 	importFile, err := ioutil.ReadFile(file)
 	if err != nil{
 		return eris.Wrap(err, "Failed to read import file")
@@ -105,7 +134,7 @@ func (c *Create) Import(file string) error{
 		}
 
 		if sepCounter == 3{
-			err = c.writeImport(fileContent)
+			err = c.writeImport(fileContent, dryRun)
 			if err != nil{
 				return eris.Wrap(err, "failed to import")
 			}
@@ -116,7 +145,7 @@ func (c *Create) Import(file string) error{
 		fileContent = append(fileContent, line)
 	}
 
-	err = c.writeImport(fileContent)
+	err = c.writeImport(fileContent, dryRun)
 	if err != nil{
 		return eris.Wrap(err, "failed to import")
 	}
@@ -125,7 +154,7 @@ func (c *Create) Import(file string) error{
 
 }
 
-func (c *Create) writeImport(fileContent []string) error {
+func (c *Create) writeImport(fileContent []string, dryRun bool) error {
 	data := strings.Join(fileContent, "\n")
 
 	metadata, err := utils.ReadfileImport(data)
@@ -143,10 +172,13 @@ func (c *Create) writeImport(fileContent []string) error {
 	}
 
 	parent := utils.GetParent(fmt.Sprintf("%s/%s", c.state.Path, metadata.Path))
-	err = os.MkdirAll(parent, constants.FolderPermission)
-	if err != nil {
-		return eris.Wrap(err, "failed to create parent dir")
+	if !dryRun{
+		err = os.MkdirAll(parent, constants.FolderPermission)
+		if err != nil {
+			return eris.Wrap(err, "failed to create parent dir")
+		}
 	}
+
 
 	p := "false"
 	if metadata.Private{
@@ -158,15 +190,16 @@ func (c *Create) writeImport(fileContent []string) error {
 		fmt.Sprintf(`title: "%s"`, metadata.Title),
 		fmt.Sprintf(`private: %s`, p),
 		"---",
-		"",
-		"",
 		metadata.Content,
 	}
 
-	err = c.createFile(metadata.Path, metadata.Title, []byte(strings.Join(d, "\n")))
-	if err != nil{
-		return eris.Wrap(err, "failed to write file for import")
+	if !dryRun{
+		err = c.createFile(metadata.Path, metadata.Title, []byte(strings.Join(d, "\n")))
+		if err != nil{
+			return eris.Wrap(err, "failed to write file for import")
+		}
 	}
+
 
 	return nil
 }
