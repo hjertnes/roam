@@ -13,7 +13,7 @@ data.db
 *.dll
 *.so
 *.dylib
-
+.roam
 # Test binary, build with `go test -c`
 *.test
 

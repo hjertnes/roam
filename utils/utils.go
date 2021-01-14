@@ -19,6 +19,12 @@ import (
 
 // GetPath returns the value of the ROAM environment variable or a default value if not set.
 func GetPath() string {
+	if utils.FileExist("./.roam"){
+		data, err := ioutil.ReadFile("./.roam")
+		if err == nil{
+			return utils.ExpandTilde(strings.ReplaceAll(string(data), "\n", ""))
+		}
+	}
 	path, isSet := os.LookupEnv("ROAM")
 
 	if !isSet {

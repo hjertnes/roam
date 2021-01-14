@@ -205,3 +205,6 @@ This project could have used SQLite, but I have chosen to use PostgreSQL for a f
 
 #### Why a database
 I have a database with close to 1500 notes, to search them all would be dreadfully slow. And a few other things are also easier with a database. Like getting a list of backlinks etc. 
+## Development
+
+This is all written in Golang without a lot of deps. If you want a seperate roam for development you can create a file anywhere called `.roam` just put a path inside it. It will be checked before reading the ROAM env variable. 
