@@ -2,6 +2,7 @@
 I feel more and more like I want to replace org-roam with something of my own
 
 ## TODO
+- Diagnostic v2: check that line 1 is --- and strip out multiple newlines in a row
 - Create template
 - Edit template
 - Upgrade: migrates config
@@ -17,13 +18,9 @@ I feel more and more like I want to replace org-roam with something of my own
 - Some input validating msising on some commands
 
 ## Upcoming versions
-
 ### v0.2.
 - Clear config
 - Clear database
-
-### v0.2.
-- Create a changelog.md
 
 ## v0.2.
 - Linting

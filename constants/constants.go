@@ -1,6 +1,6 @@
 package constants
 
-const Version = "0.2.8"
+const Version = "0.2.9"
 const FolderPermission = 0700
 const FilePermission = 0600
 
