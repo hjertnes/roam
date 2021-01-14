@@ -13,7 +13,6 @@ const defaultTemplate = `---
 title: "$$TITLE$$"
 private: false
 ---
-
 `
 
 const dailyTemplate = `---

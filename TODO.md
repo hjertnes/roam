@@ -9,20 +9,31 @@ I feel more and more like I want to replace org-roam with something of my own
 - Interactive mode that will give you a dropdown of options to replace it with and edit file option
 - Find a way to tell the user there are problems they should deal with
 - Full lint. Started but had some issues
-- Move all models to models
-- Docs
-- Cleanup
-- Option to clear database
-- Find the correct file permissons to use
 - Add flag to getbacklinks and getlinks for private or not
-- Import dry run
 - Find replace the ugly output with markdown
 - Add a configuration thing for what will be moved during publish e.g css/js etc
 - Error if --links and --backlinks are set
-- version command
 - partial sync
-- fix output in diagnostic
-  
-  {49e18c76-fcb8-43c8-9bde-0704cfe1eca1 Wiki %!s(bool=false) /Users/hjertnes/txt/roam/Projects/Websites/Wiki.md} no matches for link Wiki TODO
-- Import: too many newlines 
+
 ## Upcoming versions
+### v0.2.4
+fix output in diagnostic
+
+{49e18c76-fcb8-43c8-9bde-0704cfe1eca1 Wiki %!s(bool=false) /Users/hjertnes/txt/roam/Projects/Websites/Wiki.md} no matches for link Wiki TODO
+
+### v0.2.5
+- Read a .roam file in current dir to override ROAM env (useful for dev)
+
+### v0.2.6
+- version command
+
+### v0.2.7
+- Clear config
+- Clear database
+
+### v0.2.8
+- Use better file perms
+
+### v0.2.9
+- Import dry run
+- Import: too many newlines

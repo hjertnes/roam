@@ -23,14 +23,14 @@ func Run(path string) error {
 
 	for _, file := range files {
 		if !utilslib.FileExist(file.Path) {
-			fmt.Printf("%s: doesn't exist\n", file)
+			fmt.Printf("%s: doesn't exist\n", file.Path)
 
 			continue
 		}
 
 		metadata, err := utils.Readfile(file.Path)
 		if err != nil {
-			fmt.Printf("%s could not read file\n", file)
+			fmt.Printf("%s could not read file\n", file.Path)
 			fmt.Println("most likely invalid front matter")
 
 			continue
@@ -53,7 +53,7 @@ func Run(path string) error {
 				}
 
 				if !exist1 && !exist2 {
-					fmt.Printf("%s no matches for link %s", file, clean)
+					fmt.Printf("%s no matches for link %s", file.Path, clean)
 				}
 
 				continue
@@ -65,13 +65,13 @@ func Run(path string) error {
 			}
 
 			if len(matches) == 0 {
-				fmt.Printf("%s no matches for link %s\n", file, clean)
+				fmt.Printf("%s no matches for link %s\n", file.Path, clean)
 
 				continue
 			}
 
 			if len(matches) > 1 {
-				fmt.Printf("%s more than one match for link %s\n", file, clean)
+				fmt.Printf("%s more than one match for link %s\n", file.Path, clean)
 
 				continue
 			}
