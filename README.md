@@ -123,6 +123,10 @@ Applies database migrations, needs to be executed when you set things up and whe
 `roam help` or `roam whatever` (assuming I haven't created a command called whatever and forgotten to update this document).
 
 Shows a (currently) crappy help message. This will also be shown when the commands you entered wasn't valid
+
+### Version
+`roam version` prints the current installed version
+
 ### Create
 `roam create some/file.md`
 

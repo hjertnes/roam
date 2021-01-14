@@ -16,12 +16,6 @@ I feel more and more like I want to replace org-roam with something of my own
 - partial sync
 
 ## Upcoming versions
-### v0.2.5
-- Read a .roam file in current dir to override ROAM env (useful for dev)
-
-### v0.2.6
-- version command
-
 ### v0.2.7
 - Clear config
 - Clear database

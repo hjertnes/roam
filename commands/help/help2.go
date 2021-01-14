@@ -59,6 +59,9 @@ func Run(){
 	case "import":
 		iimport()
 		break
+	case "version":
+		version()
+		break
 	default:
 		main()
 		break
@@ -86,11 +89,16 @@ func main(){
 	fmt.Println("  report\tPrints all your notes links and backlinks")
 	fmt.Println("  stats\t\tPrints simple statistics")
 	fmt.Println("  sync\t\tWrites a cache of your roam into a postgres database structure to make search and other operations faster and more reliable")
+	fmt.Println("  version\tprints current version number")
 	fmt.Println()
 	fmt.Println("Use roam help [command] for more information about a specific command")
 	fmt.Println()
 	fmt.Println("All paths are relative to your roam dir, unless noted as full paths")
 	fmt.Println()
+}
+
+func version(){
+	fmt.Println("This just prints the current version")
 }
 
 func daily(){

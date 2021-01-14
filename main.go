@@ -14,6 +14,7 @@ import (
 	"github.com/hjertnes/roam/commands/report"
 	"github.com/hjertnes/roam/commands/stats"
 	"github.com/hjertnes/roam/commands/sync"
+	"github.com/hjertnes/roam/commands/version"
 	"github.com/hjertnes/roam/utils"
 	"os"
 )
@@ -66,6 +67,8 @@ func main() {
 		utils.ErrorHandler(getCreateCommand(path).Run())
 	case "stats":
 		utils.ErrorHandler(stats.Run(path))
+	case "version":
+		version.Run()
 	default:
 		help.Run()
 	}
