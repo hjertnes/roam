@@ -26,6 +26,9 @@ func Run(){
 	case "create":
 		create()
 		break
+	case "clear":
+		clear()
+		break
 	case "diagnostic":
 		diagnostic()
 		break
@@ -90,10 +93,20 @@ func main(){
 	fmt.Println("  stats\t\tPrints simple statistics")
 	fmt.Println("  sync\t\tWrites a cache of your roam into a postgres database structure to make search and other operations faster and more reliable")
 	fmt.Println("  version\tprints current version number")
+	fmt.Println("  remove\tused to remove stuff")
 	fmt.Println()
 	fmt.Println("Use roam help [command] for more information about a specific command")
 	fmt.Println()
 	fmt.Println("All paths are relative to your roam dir, unless noted as full paths")
+	fmt.Println()
+}
+
+func clear(){
+	fmt.Println("Removes setup")
+	fmt.Println()
+	fmt.Println("usage:")
+	fmt.Println("  roam clear database\t removes database cache")
+	fmt.Println("  roam clear config\t removes config directory")
 	fmt.Println()
 }
 

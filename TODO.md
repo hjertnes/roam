@@ -18,9 +18,5 @@ I feel more and more like I want to replace org-roam with something of my own
 - Some input validating msising on some commands
 
 ## Upcoming versions
-### v0.2.
-- Clear config
-- Clear database
-
-## v0.2.
+## v0.2.11
 - Linting

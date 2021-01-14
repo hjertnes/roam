@@ -3,6 +3,7 @@ package main
 
 
 import (
+	"github.com/hjertnes/roam/commands/clear"
 	"github.com/hjertnes/roam/commands/create"
 	"github.com/hjertnes/roam/commands/diagnostic"
 	"github.com/hjertnes/roam/commands/edit"
@@ -26,6 +27,13 @@ func getCreateCommand(path string) *create.Create{
 	return c
 }
 
+func getClearCommand(path string) *clear.Clear{
+	c, err := clear.New(path)
+	utils.ErrorHandler(err)
+
+	return c
+}
+
 func getFindCommand(path string) *find.Find{
 	c, err := find.New(path)
 	utils.ErrorHandler(err)
@@ -43,6 +51,8 @@ func main() {
 	}
 
 	switch os.Args[1] {
+	case "clear":
+		utils.ErrorHandler(getClearCommand(path).Run())
 	case "init":
 		utils.ErrorHandler(iinit.Run(path))
 	case "publish":

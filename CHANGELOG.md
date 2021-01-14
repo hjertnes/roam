@@ -1,4 +1,8 @@
 # Changelog
+## v0.2.10
+Added commands for clearing all data from database or removing the config directory
+## v0.2.9
+Added changelog
 ## v0.2.8
 Removed too many newlines in import and some input validation + a dry run option
 ## v0.2.7

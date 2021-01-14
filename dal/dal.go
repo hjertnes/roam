@@ -29,6 +29,7 @@ type Dal interface {
 	DeleteLink(fileID, linkedToFile string) error
 	GetBacklinks(fileID string) ([]models.File, error)
 	GetLinks(fileID string) ([]models.File, error)
+	Clear() error
 }
 type dal struct {
 	path string
@@ -43,6 +44,25 @@ func New(path string, ctx context.Context, conn *pgxpool.Pool) Dal {
 		ctx:  ctx,
 		conn: conn,
 	}
+}
+
+func (d *dal) Clear() error {
+	_, err := d.conn.Exec(d.ctx, `delete from links;`)
+	if err != nil{
+		return eris.Wrap(err, "failed to empty links")
+	}
+
+	_, err = d.conn.Exec(d.ctx, `delete from files;`)
+	if err != nil{
+		return eris.Wrap(err, "failed to empty files")
+	}
+
+	_, err = d.conn.Exec(d.ctx, `delete from folders;`)
+	if err != nil{
+		return eris.Wrap(err, "failed to empty folders")
+	}
+
+	return nil
 }
 
 // Exists checks if a row with the path exists.

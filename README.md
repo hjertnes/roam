@@ -107,6 +107,12 @@ The path is relative to the root of your ROAM dir. The format is more or less th
 ## Usage
 This section is structured a bit weird. But I have placed example commands at top and then a description below them 
 
+### Clear
+`roam clear database`
+`roam clear config`
+
+Used to remove database content or the config dir
+
 ### Sync
 `roam sync`
 
