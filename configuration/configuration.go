@@ -2,6 +2,7 @@
 package configuration
 
 import (
+	"github.com/hjertnes/roam/constants"
 	"io/ioutil"
 	"path"
 
@@ -53,7 +54,7 @@ func CreateConfigurationFile(filename string) error {
 		return eris.Wrap(err, "failed to marshal config file")
 	}
 
-	err = ioutil.WriteFile(filename, data, 0600)
+	err = ioutil.WriteFile(filename, data, constants.FilePermission)
 
 	if err != nil {
 		return eris.Wrap(err, "failed to write config file")

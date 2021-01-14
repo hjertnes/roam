@@ -17,11 +17,12 @@ I feel more and more like I want to replace org-roam with something of my own
 
 ## Upcoming versions
 ### v0.2.7
+- Use better file perms
+### v0.2.8
 - Clear config
 - Clear database
 
-### v0.2.8
-- Use better file perms
+
 
 ### v0.2.9
 - Import dry run

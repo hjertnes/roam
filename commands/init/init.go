@@ -3,6 +3,7 @@ package init
 import (
 	"fmt"
 	"github.com/hjertnes/roam/configuration"
+	"github.com/hjertnes/roam/constants"
 	utilslib "github.com/hjertnes/utils"
 	"github.com/rotisserie/eris"
 	"io/ioutil"
@@ -52,14 +53,14 @@ func Run(path string) error {
 	configFile := fmt.Sprintf("%s/config.yaml", configFolder)
 
 	if !utilslib.FileExist(path){
-		err := os.MkdirAll(path, 0600)
+		err := os.MkdirAll(path, constants.FolderPermission)
 		if err != nil {
 			return eris.Wrap(err, "could not create data folder")
 		}
 	}
 
 	if !utilslib.FileExist(configFolder) {
-		err := os.Mkdir(configFolder, 0600)
+		err := os.Mkdir(configFolder, constants.FolderPermission)
 		if err != nil {
 			return eris.Wrap(err, "could not create config folder")
 		}
@@ -74,17 +75,17 @@ func Run(path string) error {
 
 	publishDir := fmt.Sprintf("%s/publish", configFolder)
 	if !utilslib.FileExist(publishDir){
-		err := os.Mkdir(publishDir, os.ModePerm)
+		err := os.Mkdir(publishDir, constants.FolderPermission)
 		if err != nil {
 			return eris.Wrap(err, "could not create publish folder")
 		}
 
-		err = ioutil.WriteFile(fmt.Sprintf("%s/template.html", publishDir), []byte(publishTemplate), os.ModePerm)
+		err = ioutil.WriteFile(fmt.Sprintf("%s/template.html", publishDir), []byte(publishTemplate), constants.FilePermission)
 		if err != nil {
 			return eris.Wrap(err, "failed to write template")
 		}
 
-		err = ioutil.WriteFile(fmt.Sprintf("%s/style.css", publishDir), []byte(""), os.ModePerm)
+		err = ioutil.WriteFile(fmt.Sprintf("%s/style.css", publishDir), []byte(""), constants.FilePermission)
 		if err != nil {
 			return eris.Wrap(err, "failed to write template")
 		}
@@ -92,17 +93,17 @@ func Run(path string) error {
 
 	templatesDir := fmt.Sprintf("%s/templates", configFolder)
 	if !utilslib.FileExist(templatesDir) {
-		err := os.Mkdir(templatesDir, os.ModePerm)
+		err := os.Mkdir(templatesDir, constants.FolderPermission)
 		if err != nil {
 			return eris.Wrap(err, "could not create templates folder")
 		}
 
-		err = ioutil.WriteFile(fmt.Sprintf("%s/default.txt", templatesDir), []byte(defaultTemplate), os.ModePerm)
+		err = ioutil.WriteFile(fmt.Sprintf("%s/default.txt", templatesDir), []byte(defaultTemplate), constants.FilePermission)
 		if err != nil {
 			return eris.Wrap(err, "could not create default template")
 		}
 
-		err = ioutil.WriteFile(fmt.Sprintf("%s/daily.txt", templatesDir), []byte(dailyTemplate), os.ModePerm)
+		err = ioutil.WriteFile(fmt.Sprintf("%s/daily.txt", templatesDir), []byte(dailyTemplate), constants.FilePermission)
 		if err != nil {
 			return eris.Wrap(err, "could not create daily note template")
 		}

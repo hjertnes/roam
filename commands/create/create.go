@@ -143,7 +143,7 @@ func (c *Create) writeImport(fileContent []string) error {
 	}
 
 	parent := utils.GetParent(fmt.Sprintf("%s/%s", c.state.Path, metadata.Path))
-	err = os.MkdirAll(parent, os.ModePerm)
+	err = os.MkdirAll(parent, constants.FolderPermission)
 	if err != nil {
 		return eris.Wrap(err, "failed to create parent dir")
 	}
@@ -209,7 +209,7 @@ func (c *Create) createFile(fp, title string, templatedata []byte) error {
 	noteText = strings.ReplaceAll(noteText, "$$TIME$$", now.Format(c.state.Conf.TimeFormat))
 	noteText = strings.ReplaceAll(noteText, "$$DATETIME$$", now.Format(c.state.Conf.DateTimeFormat))
 
-	err := ioutil.WriteFile(filepath, []byte(noteText), 0600)
+	err := ioutil.WriteFile(filepath, []byte(noteText), constants.FilePermission)
 	if err != nil {
 		return eris.Wrap(err, "failed to write file")
 	}

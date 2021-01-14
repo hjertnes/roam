@@ -2,6 +2,7 @@ package publish
 
 import (
 	"bytes"
+	"github.com/hjertnes/roam/constants"
 	spinner2 "github.com/hjertnes/roam/widgets/spinner"
 
 	"fmt"
@@ -65,7 +66,7 @@ func Run(path string) error{
 		}
 	}
 
-	err = os.MkdirAll(outputDir, os.ModePerm)
+	err = os.MkdirAll(outputDir, constants.FolderPermission)
 	if err != nil{
 		return eris.Wrap(err, "failed to create output dir")
 	}
@@ -154,7 +155,7 @@ func Run(path string) error{
 		folderPath, filename := utils.DestructPath(filePath)
 
 		if !utilslib.FileExist(folderPath){
-			err = os.MkdirAll(folderPath, os.ModePerm)
+			err = os.MkdirAll(folderPath, constants.FolderPermission)
 			if err != nil{
 				return eris.Wrap(err, "failed to create folder")
 			}
@@ -193,7 +194,7 @@ func Run(path string) error{
 		}
 
 
-		err = ioutil.WriteFile(fullFilePath, []byte(out), os.ModePerm)
+		err = ioutil.WriteFile(fullFilePath, []byte(out), constants.FilePermission)
 		if err != nil{
 			return eris.Wrap(err, "failed to write file")
 		}
@@ -219,7 +220,7 @@ func Run(path string) error{
 	out = strings.ReplaceAll(out, "$$TEXT$$", strings.Join(output, "\n"))
 	out = strings.ReplaceAll(out, "$$BACKLINKS$$", "")
 
-	err = ioutil.WriteFile(fmt.Sprintf("%s/index.html", outputDir), []byte(out), os.ModePerm)
+	err = ioutil.WriteFile(fmt.Sprintf("%s/index.html", outputDir), []byte(out), constants.FilePermission)
 	if err != nil{
 		return eris.Wrap(err, "failed to write file")
 	}
@@ -237,7 +238,7 @@ func Run(path string) error{
 				return eris.Wrap(err, "failed to read file")
 			}
 
-			err = ioutil.WriteFile(to, data, os.ModePerm)
+			err = ioutil.WriteFile(to, data, constants.FilePermission)
 			if err != nil{
 				return eris.Wrap(err, "failed to write file")
 			}
