@@ -80,10 +80,18 @@ func (f *Find) getResults(query string) ([]models.File, error) {
 	return result, nil
 }
 
-func (f *Find) query(files []models.File) {
+func (f *Find) query(files []models.File) error {
+	result := make([]string, 0)
 	for i := range files {
-		fmt.Printf("- %s\n", files[i].Path)
+		result = append(result, fmt.Sprintf("- <%s>\n", files[i].Path))
 	}
+
+	err := utils.RenderMarkdown(strings.Join(result, "\n"))
+	if err != nil{
+		return eris.Wrap(err, "failed to render markdown")
+	}
+
+	return nil
 }
 
 func (f *Find) selectFile(result []models.File) (*models.File, error) {
@@ -142,7 +150,10 @@ func (f *Find) Run() error {
 	}
 
 	if f.subcommand == query && !f.backlinksFlag && !f.linksFlag {
-		f.query(result)
+		err := f.query(result)
+		if err != nil{
+			return eris.Wrap(err, "failed to show query result")
+		}
 
 		return nil
 	}
@@ -186,7 +197,10 @@ func (f *Find) Run() error {
 		}
 
 		if f.subcommand == query {
-			f.query(links)
+			err := f.query(result)
+			if err != nil{
+				return eris.Wrap(err, "failed to show query result")
+			}
 
 			return nil
 		}

@@ -37,6 +37,15 @@ func Run(path string) error {
 			continue
 		}
 
+		if strings.Contains(metadata.Content, "\n\n") {
+			fmt.Printf("%s contains a lot of newlines after eachother\n", file.Path)
+		}
+
+		if strings.Split(metadata.Content, "\n")[0] != "---"{
+			fmt.Printf("%s the first line is not as expected", file.Path)
+			continue
+		}
+
 		links := constants.NoteLinkRegexp.FindAllString(metadata.Content, -1)
 
 		for _, link := range links {

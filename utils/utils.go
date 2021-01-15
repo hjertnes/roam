@@ -97,6 +97,21 @@ func ViewNote(path string) error {
 	return nil
 }
 
+func RenderMarkdown(data string) error{
+	r, _ := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+	)
+
+	out, err := r.Render(data)
+	if err != nil {
+		return eris.Wrap(err, "failed to render markdown")
+	}
+
+	fmt.Print(out)
+
+	return nil
+}
+
 // PrintListOfLinks prints a list of links.
 func PrintListOfLinks(output []string, links []models.File) []string {
 	if len(links) == 0 {
@@ -104,7 +119,7 @@ func PrintListOfLinks(output []string, links []models.File) []string {
 	}
 
 	for _, link := range links {
-		output = append(output, fmt.Sprintf("- %s\n", link.Path))
+		output = append(output, fmt.Sprintf("- <%s>\n", link.Path))
 	}
 
 	return output

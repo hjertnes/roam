@@ -13,13 +13,6 @@ I feel more and more like I want to replace org-roam with something of my own
 - Lint more
 
 ## Upcoming versions
-### v0.2.13
-- Find things that belong in utilslib
-- Utils should be broken up
-- The path splitting stuff should use this regex: (?<!\\)/
-### v0.2.14
-- Find replace the ugly output with markdown
-- Diagnostic v2: check that line 1 is --- and strip out multiple newlines in a row
 ### v0.2.15
 - Find a way to tell the user there are problems they should deal with
 ### v0.2.16

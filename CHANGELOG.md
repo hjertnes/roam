@@ -1,4 +1,11 @@
 # Changelog
+## v0.2.14
+- Added more checks to diagnostics
+- Replaced some output with rendered markdown
+## v0.2.13
+Replaced various path functions with a pathtuils package
+## v0.2.12
+More validation on some sub commands that lacked it
 ## v0.2.11
 Linting
 ## v0.2.10
