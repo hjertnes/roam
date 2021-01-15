@@ -18,9 +18,10 @@ type Configuration struct {
 	Templates                []TemplateFile
 }
 
+// Folder is the database model for a folder.
 type Folder struct {
-	ID    string `db:"id"`
-	Path  string `db:"path"`
+	ID   string `db:"id"`
+	Path string `db:"path"`
 }
 
 // Frontmatter is the type for the metadata in a file.
@@ -30,19 +31,20 @@ type Frontmatter struct {
 	Content string `fm:"content"`
 }
 
+// ImportFrontmatter is the metadata for import files.
 type ImportFrontmatter struct {
 	Title   string `fm:"title"`
 	Private bool   `fm:"private"`
-	Path string    `fm:"path"`
+	Path    string `fm:"path"`
 	Content string `fm:"content"`
 }
 
 // File is the database model for a file or note.
 type File struct {
-	ID    string `db:"id"`
-	Title string `db:"title"`
-	Private bool `db:"private"`
-	Path  string `db:"path"`
+	ID      string `db:"id"`
+	Title   string `db:"title"`
+	Private bool   `db:"private"`
+	Path    string `db:"path"`
 }
 
 // Choice is the type for the options.

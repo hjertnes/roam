@@ -1,48 +1,53 @@
+// Package create creates stuff.
 package create
 
 import (
 	"fmt"
-	"github.com/hjertnes/roam/commands/help"
-	"github.com/hjertnes/roam/constants"
-	"github.com/hjertnes/roam/errs"
-	"github.com/hjertnes/roam/state"
-	"github.com/hjertnes/roam/utils"
-	"github.com/hjertnes/roam/widgets/selectinput2"
-	"github.com/hjertnes/roam/widgets/textinput2"
-	utilslib "github.com/hjertnes/utils"
-	"github.com/rotisserie/eris"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/hjertnes/roam/commands/help"
+	"github.com/hjertnes/roam/constants"
+	"github.com/hjertnes/roam/errs"
+	"github.com/hjertnes/roam/state"
+	"github.com/hjertnes/roam/utils"
+	"github.com/hjertnes/roam/widgets/selectinput"
+	"github.com/hjertnes/roam/widgets/textinput"
+	utilslib "github.com/hjertnes/utils"
+	"github.com/rotisserie/eris"
 )
 
+// Create is the exported type.
 type Create struct {
 	state *state.State
 }
 
+// Run runs the command and figures out what to do.
 func (c *Create) Run() error {
 	switch len(os.Args) {
 	case constants.Two:
-		return c.DailyToday()
+		return c.dailyToday()
 	case constants.Three:
-		return c.Daily(os.Args[2])
+		return c.daily(os.Args[2])
 	default:
 		help.Run()
+
 		return nil
 	}
 }
 
+// CreateFile creates a new note.
 func (c *Create) CreateFile(filepath string) error {
-	title, err := textinput2.Run("Title")
+	title, err := textinput.Run("Title")
 	if err != nil {
 		return eris.Wrap(err, "could not get title from textinput")
 	}
 
-	template, err := selectinput2.Run(
+	template, err := selectinput.Run(
 		utils.ConvertTemplateFiles(c.state.Conf.Templates), "Template")
-
 	if err != nil {
 		return eris.Wrap(err, "could not get template selection from selectinput")
 	}
@@ -50,7 +55,6 @@ func (c *Create) CreateFile(filepath string) error {
 	if utilslib.FileExist(filepath) {
 		return errs.ErrDuplicate
 	}
-
 
 	templatedata, err := ioutil.ReadFile(fmt.Sprintf("%s/.config/templates/%s", c.state.Path, template.Value))
 	if err != nil {
@@ -74,9 +78,10 @@ func (c *Create) CreateFile(filepath string) error {
 	return nil
 }
 
-func New(path string) (*Create, error){
+// New is the constructor.
+func New(path string) (*Create, error) {
 	s, err := state.New(path)
-	if err != nil{
+	if err != nil {
 		return nil, eris.Wrap(err, "could not create state")
 	}
 
@@ -84,13 +89,16 @@ func New(path string) (*Create, error){
 		state: s,
 	}, nil
 }
-func (c *Create) DailyToday() error {
-	return c.Daily(time.Now().Format(c.state.Conf.DateFormat))
+
+func (c *Create) dailyToday() error {
+	return c.daily(time.Now().Format(c.state.Conf.DateFormat))
 }
 
-func (c *Create) RunImport() error{
+// RunImport runs a import.
+func (c *Create) RunImport() error {
 	var file string
-	var dryRun = false
+
+	dryRun := false
 
 	for i := range os.Args {
 		if i <= 1 {
@@ -104,22 +112,22 @@ func (c *Create) RunImport() error{
 		}
 	}
 
-	if file == ""{
+	if file == "" {
 		help.Run()
 		os.Exit(0)
 	}
 
-	err := c.Import(file, dryRun)
-	if err != nil{
+	err := c.doImport(file, dryRun)
+	if err != nil {
 		return eris.Wrap(err, "failed to import")
 	}
 
 	return nil
 }
 
-func (c *Create) Import(file string, dryRun bool) error{
-	importFile, err := ioutil.ReadFile(file)
-	if err != nil{
+func (c *Create) doImport(file string, dryRun bool) error {
+	importFile, err := ioutil.ReadFile(file) // #nosec
+	if err != nil {
 		return eris.Wrap(err, "Failed to read import file")
 	}
 
@@ -128,17 +136,19 @@ func (c *Create) Import(file string, dryRun bool) error{
 	fileContent := make([]string, 0)
 	sepCounter := 0
 
-	for _, line := range importContent{
+	for _, line := range importContent {
 		if line == "---" {
 			sepCounter++
 		}
 
-		if sepCounter == 3{
+		if sepCounter == constants.Three {
 			err = c.writeImport(fileContent, dryRun)
-			if err != nil{
+			if err != nil {
 				return eris.Wrap(err, "failed to import")
 			}
+
 			fileContent = make([]string, 0)
+
 			sepCounter = 1
 		}
 
@@ -146,42 +156,41 @@ func (c *Create) Import(file string, dryRun bool) error{
 	}
 
 	err = c.writeImport(fileContent, dryRun)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to import")
 	}
 
 	return nil
-
 }
 
 func (c *Create) writeImport(fileContent []string, dryRun bool) error {
 	data := strings.Join(fileContent, "\n")
 
 	metadata, err := utils.ReadfileImport(data)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to read file for import")
 	}
 
 	exist, err := c.state.Dal.FileExists(metadata.Path)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to check if file xist")
 	}
 
-	if exist{
+	if exist {
 		return eris.Wrapf(errs.ErrDuplicate, "file exist %s", metadata.Path)
 	}
 
 	parent := utils.GetParent(fmt.Sprintf("%s/%s", c.state.Path, metadata.Path))
-	if !dryRun{
+
+	if !dryRun {
 		err = os.MkdirAll(parent, constants.FolderPermission)
 		if err != nil {
 			return eris.Wrap(err, "failed to create parent dir")
 		}
 	}
 
-
 	p := "false"
-	if metadata.Private{
+	if metadata.Private {
 		p = "true"
 	}
 
@@ -193,18 +202,17 @@ func (c *Create) writeImport(fileContent []string, dryRun bool) error {
 		metadata.Content,
 	}
 
-	if !dryRun{
+	if !dryRun {
 		err = c.createFile(metadata.Path, metadata.Title, []byte(strings.Join(d, "\n")))
-		if err != nil{
+		if err != nil {
 			return eris.Wrap(err, "failed to write file for import")
 		}
 	}
 
-
 	return nil
 }
 
-func (c *Create) Daily(date string) error {
+func (c *Create) daily(date string) error {
 	filename := fmt.Sprintf("Daily Notes/%s.md", date)
 	fullFilename := fmt.Sprintf("%s/%s", c.state.Path, filename)
 
@@ -232,7 +240,6 @@ func (c *Create) Daily(date string) error {
 	return nil
 }
 
-
 func (c *Create) createFile(fp, title string, templatedata []byte) error {
 	filepath := fmt.Sprintf("%s/%s", c.state.Path, fp)
 	now := time.Now()
@@ -247,7 +254,6 @@ func (c *Create) createFile(fp, title string, templatedata []byte) error {
 		return eris.Wrap(err, "failed to write file")
 	}
 
-	// TODO this is where the crash is
 	err = c.state.Dal.CreateFile(filepath, title, noteText, false)
 	if err != nil {
 		return eris.Wrap(err, "failed to create file in database")

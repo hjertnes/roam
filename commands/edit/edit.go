@@ -1,15 +1,18 @@
+// Package edit lets you edit config files
 package edit
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
+
 	"github.com/hjertnes/roam/commands/help"
 	"github.com/hjertnes/roam/constants"
 	"github.com/hjertnes/roam/utils"
 	"github.com/rotisserie/eris"
-	"os"
-	"os/exec"
 )
 
+// Run is the entry point.
 func Run(path string) error {
 	if len(os.Args) == constants.Two {
 		help.Run()

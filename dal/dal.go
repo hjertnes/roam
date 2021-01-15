@@ -3,6 +3,7 @@ package dal
 
 import (
 	"context"
+
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/hjertnes/roam/models"
 	"github.com/hjertnes/roam/utils"
@@ -12,12 +13,11 @@ import (
 )
 
 // Dal is the exported type.
-
 type Dal interface {
 	FileExists(path string) (bool, error)
 	GetFiles() ([]models.File, error)
-	GetFolderFiles(folderId string) ([]models.File, error)
-	GetSubFolders(folderId string) ([]models.Folder, error)
+	GetFolderFiles(folderID string) ([]models.File, error)
+	GetSubFolders(folderID string) ([]models.Folder, error)
 	GetRootFolder() (*models.Folder, error)
 	CreateFile(path, title, content string, private bool) error
 	DeleteFiles() error
@@ -31,6 +31,7 @@ type Dal interface {
 	GetLinks(fileID string) ([]models.File, error)
 	Clear() error
 }
+
 type dal struct {
 	path string
 	ctx  context.Context
@@ -38,7 +39,7 @@ type dal struct {
 }
 
 // New is the constructor.
-func New(path string, ctx context.Context, conn *pgxpool.Pool) Dal {
+func New(ctx context.Context, conn *pgxpool.Pool, path string) Dal {
 	return &dal{
 		path: path,
 		ctx:  ctx,
@@ -48,17 +49,17 @@ func New(path string, ctx context.Context, conn *pgxpool.Pool) Dal {
 
 func (d *dal) Clear() error {
 	_, err := d.conn.Exec(d.ctx, `delete from links;`)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to empty links")
 	}
 
 	_, err = d.conn.Exec(d.ctx, `delete from files;`)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to empty files")
 	}
 
 	_, err = d.conn.Exec(d.ctx, `delete from folders;`)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to empty folders")
 	}
 
@@ -98,9 +99,11 @@ func (d *dal) GetFiles() ([]models.File, error) {
 	return files, nil
 }
 
-func (d *dal) getFolder(path string) (string, error){
+func (d *dal) getFolder(path string) (string, error) {
 	var id string
+
 	res := d.conn.QueryRow(d.ctx, `select id from folders where path=$1`, path)
+
 	err := res.Scan(&id)
 	if err != nil {
 		return "", eris.Wrap(err, "failed to get folder")
@@ -109,12 +112,12 @@ func (d *dal) getFolder(path string) (string, error){
 	return id, nil
 }
 
-func (d *dal) GetFolderFiles(folderId string) ([]models.File, error){
+func (d *dal) GetFolderFiles(folderID string) ([]models.File, error) {
 	var files []models.File
 
 	result, err := d.conn.Query(
 		d.ctx,
-		`select ID, title, path, private from files where folder_fk=$1 order by path`, folderId)
+		`select ID, title, path, private from files where folder_fk=$1 order by path`, folderID)
 	if err != nil {
 		return files, eris.Wrap(err, "failed to get list of files")
 	}
@@ -127,53 +130,62 @@ func (d *dal) GetFolderFiles(folderId string) ([]models.File, error){
 	return files, nil
 }
 
-func (d *dal) GetSubFolders(folderId string) ([]models.Folder, error){
+func (d *dal) GetSubFolders(folderID string) ([]models.Folder, error) {
 	var result []models.Folder
 
-	q, err := d.conn.Query(d.ctx, `select id, path from folders where parent_fk=$1`, folderId)
-	if err != nil{
+	q, err := d.conn.Query(d.ctx, `select id, path from folders where parent_fk=$1`, folderID)
+	if err != nil {
 		return result, eris.Wrap(err, "could not get sub folder")
 	}
 
 	err = pgxscan.ScanAll(&result, q)
-	if err != nil{
+	if err != nil {
 		return result, eris.Wrap(err, "could not get sub folder")
 	}
 
 	return result, nil
 }
 
-func (d *dal) GetRootFolder() (*models.Folder, error){
+func (d *dal) GetRootFolder() (*models.Folder, error) {
 	q, err := d.conn.Query(d.ctx, `select id, path from folders where parent_fk is null`)
-	if err != nil{
+	if err != nil {
 		return nil, eris.Wrap(err, "could not get root folder")
 	}
+
 	var result []models.Folder
 
 	err = pgxscan.ScanAll(&result, q)
-	if err != nil{
+	if err != nil {
 		return nil, eris.Wrap(err, "could not get root folder")
 	}
 
 	return &result[0], nil
 }
 
-func (d *dal) createFolder(path string) error{
-	parentId := utilslib.NilStringPointer()
+func (d *dal) createFolder(path string) error {
+	parentID := utilslib.NilStringPointer()
 
 	if path != d.path {
 		p := utils.GetParent(path)
+
 		err := d.createFolder(p)
-		if err != nil{
+		if err != nil {
 			return eris.Wrap(err, "failed to create parent folder")
 		}
+
 		pp, err := d.getFolder(p)
-		parentId = &pp
-		if err != nil{
+		if err != nil {
 			return eris.Wrap(err, "failed to get parent folder")
 		}
+
+		parentID = &pp
 	}
-	_, err := d.conn.Exec(d.ctx, `insert into folders (path, parent_fk) values($1, $2) on conflict do nothing`, path, parentId)
+
+	_, err := d.conn.Exec(
+		d.ctx,
+		`insert into folders (path, parent_fk) values($1, $2) on conflict do nothing`,
+		path,
+		parentID)
 	if err != nil {
 		return eris.Wrap(err, "failed to create folder")
 	}
@@ -184,12 +196,14 @@ func (d *dal) createFolder(path string) error{
 // Create adds new file to database.
 func (d *dal) CreateFile(path, title, content string, private bool) error {
 	p := utils.RemoveFilenameFromPath(path)
+
 	err := d.createFolder(p)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to create folder")
 	}
-	folderId, err := d.getFolder(p)
-	if err != nil{
+
+	folderID, err := d.getFolder(p)
+	if err != nil {
 		return eris.Wrap(err, "failed to get folder")
 	}
 
@@ -199,7 +213,7 @@ func (d *dal) CreateFile(path, title, content string, private bool) error {
 insert into files 
 (processed_at, path, title, title_tokens, content, content_tokens, private, folder_fk) 
 values(timezone('utc', now()), $1, $2, to_tsvector($2), $3, to_tsvector($3), $4, $5)`,
-		path, title, content, private, folderId)
+		path, title, content, private, folderID)
 	if err != nil {
 		return eris.Wrap(err, "failed to create file")
 	}
@@ -217,7 +231,14 @@ func (d *dal) DeleteFiles() error {
 	for _, r := range files {
 		if !utilslib.FileExist(r.Path) {
 			_, err = d.conn.Exec(d.ctx, `delete from links where file_fk=$1`, r.ID)
+			if err != nil {
+				return eris.Wrap(err, "failed to delete links")
+			}
+
 			_, err = d.conn.Exec(d.ctx, `delete from links where link_fk=$1`, r.ID)
+			if err != nil {
+				return eris.Wrap(err, "failed to delete links")
+			}
 
 			_, err = d.conn.Exec(d.ctx, `delete from files where id=$1`, r.ID)
 			if err != nil {

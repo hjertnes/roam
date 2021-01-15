@@ -2,17 +2,18 @@ package diagnostic
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/hjertnes/roam/constants"
 	"github.com/hjertnes/roam/state"
 	"github.com/hjertnes/roam/utils"
 	utilslib "github.com/hjertnes/utils"
-	"strings"
-
 	"github.com/rotisserie/eris"
 )
 
 func Run(path string) error {
 	s, err := state.New(path)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "Failed to create state")
 	}
 
@@ -36,7 +37,7 @@ func Run(path string) error {
 			continue
 		}
 
-		links := utils.NoteLinkRegexp.FindAllString(metadata.Content, -1)
+		links := constants.NoteLinkRegexp.FindAllString(metadata.Content, -1)
 
 		for _, link := range links {
 			clean := utils.CleanLink(link)

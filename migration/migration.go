@@ -42,6 +42,7 @@ path text not null unique
 	if err != nil {
 		return eris.Wrap(err, "failed to create folders table")
 	}
+
 	_, err = m.conn.Exec(m.ctx, `
 create table files(
 id uuid primary key not null default gen_random_uuid() unique, 

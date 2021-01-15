@@ -15,6 +15,7 @@ require (
 	github.com/theckman/yacspin v0.8.0
 	github.com/yuin/goldmark v1.2.0
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
+	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7
 	golang.org/x/sys v0.0.0-20201020230747-6e5568b54d1a // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )

@@ -8,5 +8,6 @@ var (
 	ErrDuplicate = eris.New("duplicate")
 	// ErrNotFound is the error for not found.
 	ErrNotFound = eris.New("not found")
+	// ErrNoValue is the error for when no value is found.
 	ErrNoValue = eris.New("no value")
 )

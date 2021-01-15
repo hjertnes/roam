@@ -3,30 +3,30 @@ package utils
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+
 	"github.com/charmbracelet/glamour"
 	"github.com/ericaro/frontmatter"
 	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/models"
 	"github.com/hjertnes/utils"
 	"github.com/rotisserie/eris"
-	"io/ioutil"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"regexp"
-	"strings"
 )
 
 // GetPath returns the value of the ROAM environment variable or a default value if not set.
 func GetPath() string {
-	if utils.FileExist("./.roam"){
+	if utils.FileExist("./.roam") {
 		data, err := ioutil.ReadFile("./.roam")
-		if err == nil{
+		if err == nil {
 			return utils.ExpandTilde(strings.ReplaceAll(string(data), "\n", ""))
 		}
 	}
-	path, isSet := os.LookupEnv("ROAM")
 
+	path, isSet := os.LookupEnv("ROAM")
 	if !isSet {
 		return utils.ExpandTilde("~/txt/roam2")
 	}
@@ -97,7 +97,8 @@ func ViewNote(path string) error {
 	return nil
 }
 
-func PrintListOfLinks(output []string, links []models.File) []string{
+// PrintListOfLinks prints a list of links.
+func PrintListOfLinks(output []string, links []models.File) []string {
 	if len(links) == 0 {
 		output = append(output, "No links")
 	}
@@ -142,13 +143,14 @@ func ConvertTemplateFiles(templates []models.TemplateFile) []models.Choice {
 	return result
 }
 
-func RemoveFilenameFromPath(path string) string{
+// RemoveFilenameFromPath removes filename from the path.
+func RemoveFilenameFromPath(path string) string {
 	res := make([]string, 0)
 
 	elems := strings.Split(path, "/")
 
-	for _, e := range elems{
-		if strings.HasSuffix(e, ".md"){
+	for _, e := range elems {
+		if strings.HasSuffix(e, ".md") {
 			continue
 		}
 
@@ -158,13 +160,14 @@ func RemoveFilenameFromPath(path string) string{
 	return strings.Join(res, "/")
 }
 
-func GetParent(path string) string{
+// GetParent takes a path and return the level above it.
+func GetParent(path string) string {
 	res := make([]string, 0)
 
 	elems := strings.Split(path, "/")
 
-	for i, e := range elems{
-		if i == len(elems) -1{
+	for i, e := range elems {
+		if i == len(elems)-1 {
 			continue
 		}
 
@@ -174,6 +177,7 @@ func GetParent(path string) string{
 	return strings.Join(res, "/")
 }
 
+// BuildVectorSearch builds a postgres vector search query.
 func BuildVectorSearch(input string) string {
 	if !strings.Contains(input, " ") {
 		return fmt.Sprintf("%s:*", input)
@@ -188,23 +192,23 @@ func BuildVectorSearch(input string) string {
 	return strings.Join(output, "&")
 }
 
+// CleanLink removes the [[ and ]] around links.
 func CleanLink(input string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(input, "[[", ""), "]]", "")
 }
 
-var NoteLinkRegexp = regexp.MustCompile(`\[\[([\d\w\s./]+)]]`)
-
-func DestructPath(path string)(string, string){
+// DestructPath takes a path and returns the filename and the path without filename.
+func DestructPath(path string) (string, string) {
 	elems := strings.Split(path, "/")
 
 	folderPath := make([]string, 0)
 	filename := ""
 
-	lastElem := len(elems)-1
+	lastElem := len(elems) - 1
 
-	for i, e := range elems{
-		if i == lastElem{
-			filename=e
+	for i, e := range elems {
+		if i == lastElem {
+			filename = e
 		} else {
 			folderPath = append(folderPath, e)
 		}
@@ -213,17 +217,23 @@ func DestructPath(path string)(string, string){
 	return strings.Join(folderPath, "/"), strings.ReplaceAll(filename, ".md", ".html")
 }
 
-func FixUrl(input string) string{
+// FixURL fixes various url stuff.
+func FixURL(input string) string {
 	output := strings.ReplaceAll(input, " ", "%20")
+
 	output = strings.ReplaceAll(output, ".md", ".html")
+
 	return output
 }
 
-func GetLast(path string) string{
+// GetLast returns the last part of a file path.
+func GetLast(path string) string {
 	elems := strings.Split(path, "/")
+
 	return elems[len(elems)-1]
 }
 
+// Readfile reads a file into a model.
 func Readfile(path string) (*models.Frontmatter, error) {
 	data, err := ioutil.ReadFile(filepath.Clean(path))
 	if err != nil {
@@ -240,6 +250,7 @@ func Readfile(path string) (*models.Frontmatter, error) {
 	return &metadata, nil
 }
 
+// ReadfileImport turns import file string into the proper model.
 func ReadfileImport(data string) (*models.ImportFrontmatter, error) {
 	metadata := models.ImportFrontmatter{}
 
@@ -251,12 +262,15 @@ func ReadfileImport(data string) (*models.ImportFrontmatter, error) {
 	return &metadata, nil
 }
 
+// ErrorHandler is a error handler that deals with errors at the outter most level of this cli.
 func ErrorHandler(err error) {
 	if err != nil {
 		if eris.Is(err, errs.ErrNotFound) {
 			fmt.Println("No matches to search query")
 		}
+
 		fmt.Println("Error")
+
 		fmt.Println(eris.ToString(err, true))
 
 		os.Exit(0)

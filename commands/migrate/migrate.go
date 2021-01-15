@@ -1,3 +1,4 @@
+// Package migrate applies database migrations.
 package migrate
 
 import (
@@ -7,19 +8,20 @@ import (
 	"github.com/rotisserie/eris"
 )
 
+// Run is the entry point.
 func Run(path string) error {
 	s, err := state.New(path)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "Failed to create state")
 	}
 
 	spinner, err := spinner2.Run("")
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to create spinner")
 	}
 
 	err = spinner.Start()
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to start spinner")
 	}
 
@@ -31,7 +33,7 @@ func Run(path string) error {
 	}
 
 	err = spinner.Stop()
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to stop spinner")
 	}
 

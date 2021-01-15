@@ -1,8 +1,8 @@
 package main
 
-
-
 import (
+	"os"
+
 	"github.com/hjertnes/roam/commands/clear"
 	"github.com/hjertnes/roam/commands/create"
 	"github.com/hjertnes/roam/commands/diagnostic"
@@ -17,24 +17,23 @@ import (
 	"github.com/hjertnes/roam/commands/sync"
 	"github.com/hjertnes/roam/commands/version"
 	"github.com/hjertnes/roam/utils"
-	"os"
 )
 
-func getCreateCommand(path string) *create.Create{
+func getCreateCommand(path string) *create.Create {
 	c, err := create.New(path)
 	utils.ErrorHandler(err)
 
 	return c
 }
 
-func getClearCommand(path string) *clear.Clear{
+func getClearCommand(path string) *clear.Clear {
 	c, err := clear.New(path)
 	utils.ErrorHandler(err)
 
 	return c
 }
 
-func getFindCommand(path string) *find.Find{
+func getFindCommand(path string) *find.Find {
 	c, err := find.New(path)
 	utils.ErrorHandler(err)
 

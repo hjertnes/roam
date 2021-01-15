@@ -1,26 +1,28 @@
+// Package stats calculates statistics
 package stats
 
 import (
 	"fmt"
+
 	"github.com/hjertnes/roam/state"
 	spinner2 "github.com/hjertnes/roam/widgets/spinner"
 	"github.com/rotisserie/eris"
 )
 
-// Stats shows statistics.
+// Run shows statistics.
 func Run(path string) error {
 	s, err := state.New(path)
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "Failed to create state")
 	}
 
 	spinner, err := spinner2.Run("")
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to create spinner")
 	}
 
 	err = spinner.Start()
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to start spinner")
 	}
 
@@ -30,7 +32,7 @@ func Run(path string) error {
 	}
 
 	err = spinner.Stop()
-	if err != nil{
+	if err != nil {
 		return eris.Wrap(err, "failed to stop spinner")
 	}
 

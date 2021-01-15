@@ -2,10 +2,10 @@
 package configuration
 
 import (
-	"github.com/hjertnes/roam/constants"
 	"io/ioutil"
 	"path"
 
+	"github.com/hjertnes/roam/constants"
 	"github.com/hjertnes/roam/models"
 	"github.com/rotisserie/eris"
 	"gopkg.in/yaml.v2"

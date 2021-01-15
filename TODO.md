@@ -16,7 +16,11 @@ I feel more and more like I want to replace org-roam with something of my own
 - Error if --links and --backlinks are set
 - partial sync
 - Some input validating msising on some commands
+- Find things that belong in utilslib
+- The path splitting stuff should use this regex: (?<!\\)/
+- Find crashes on empty database
+- Utils should be broken up
+- Create is a mess
+- Lint more
 
 ## Upcoming versions
-## v0.2.11
-- Linting

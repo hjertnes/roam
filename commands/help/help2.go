@@ -1,3 +1,4 @@
+// Package help shows help information
 package help
 
 import (
@@ -6,72 +7,64 @@ import (
 	"strings"
 )
 
-func Run(){
+func getSubCommand() string {
 	subCommand := ""
 
-	for i := range os.Args{
-		if i > 1{
-			if !strings.HasPrefix(os.Args[i], "--"){
+	for i := range os.Args {
+		if i > 1 {
+			if !strings.HasPrefix(os.Args[i], "--") {
 				subCommand = os.Args[i]
+
 				break
 			}
 		}
 	}
 
-	if len(os.Args) > 1 && os.Args[1] != "help"{
+	if len(os.Args) > 1 && os.Args[1] != "help" {
 		subCommand = ""
 	}
 
-	switch subCommand {
-	case "create":
-		create()
-		break
-	case "clear":
-		clear()
-		break
-	case "diagnostic":
-		diagnostic()
-		break
-	case "edit":
-		edit()
-		break
-	case "find":
-		find()
-		break
-	case "init":
-		iinit()
-		break
-	case "migrate":
-		migrate()
-		break
-	case "publish":
-		publish()
-		break
-	case "report":
-		report()
-		break
-	case "stats":
-		stats()
-		break
-	case "sync":
-		sync()
-		break
-	case "daily":
-		daily()
-		break
-	case "import":
-		iimport()
-		break
-	case "version":
-		version()
-		break
-	default:
+	return subCommand
+}
+
+var subCommands = map[string]func(){
+	"create":     create,
+	"clear":      clear,
+	"diagnostic": diagnostic,
+	"edit":       edit,
+	"find":       find,
+	"init":       iinit,
+	"migrate":    migrate,
+	"publish":    publish,
+	"report":     report,
+	"stats":      stats,
+	"sync":       sync,
+	"daily":      daily,
+	"import":     iimport,
+	"version":    version,
+}
+
+func contains(key string) bool {
+	for i := range subCommands {
+		if i == key {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Run is the entry point.
+func Run() {
+	subCommand := getSubCommand()
+	if !contains(subCommand) {
 		main()
-		break
+	} else {
+		subCommands[subCommand]()
 	}
 }
 
-func main(){
+func main() {
 	fmt.Println("roam is a command line tool kind of like https://roamresearch.com/ and https://www.orgroam.com/")
 	fmt.Println("A lot of the same concepts, like links and backlinks. But cli based instead of web or emacs")
 	fmt.Println("")
@@ -91,7 +84,7 @@ func main(){
 	fmt.Println("  publish\tBuilds a HTML website version of your roam")
 	fmt.Println("  report\tPrints all your notes links and backlinks")
 	fmt.Println("  stats\t\tPrints simple statistics")
-	fmt.Println("  sync\t\tWrites a cache of your roam into a postgres database structure to make search and other operations faster and more reliable")
+	fmt.Println("  sync\t\tWrites a cache of your roam into a postgres database used by search and others")
 	fmt.Println("  version\tprints current version number")
 	fmt.Println("  remove\tused to remove stuff")
 	fmt.Println()
@@ -101,7 +94,7 @@ func main(){
 	fmt.Println()
 }
 
-func clear(){
+func clear() {
 	fmt.Println("Removes setup")
 	fmt.Println()
 	fmt.Println("usage:")
@@ -110,11 +103,11 @@ func clear(){
 	fmt.Println()
 }
 
-func version(){
+func version() {
 	fmt.Println("This just prints the current version")
 }
 
-func daily(){
+func daily() {
 	fmt.Println("This makes it easier to access daily notes")
 	fmt.Println("Just a short hand for find and create")
 	fmt.Println("It creates (if not existing) and opens the note automatically based on the Daily Notes template")
@@ -126,7 +119,7 @@ func daily(){
 	fmt.Println()
 }
 
-func iimport(){
+func iimport() {
 	fmt.Println("This bulk imports notes from a single markdown file")
 	fmt.Println("It creates notes at the specified path if it doens't already exist")
 	fmt.Println()
@@ -139,7 +132,7 @@ func iimport(){
 	fmt.Println()
 }
 
-func create(){
+func create() {
 	fmt.Println("This makes it easy to create a new note in your roam")
 	fmt.Println("You just give it a path, and you ")
 	fmt.Println()
@@ -151,7 +144,7 @@ func create(){
 	fmt.Println()
 }
 
-func diagnostic(){
+func diagnostic() {
 	fmt.Println("This checks your roam for files with problems")
 	fmt.Println("It checks that all the front matter is valid")
 	fmt.Println("It checks that all the links resolve to a single file")
@@ -161,7 +154,7 @@ func diagnostic(){
 	fmt.Println()
 }
 
-func edit(){
+func edit() {
 	fmt.Println("It makes it easy to open config files and templates")
 	fmt.Println("Currently only supports config file")
 	fmt.Println()
@@ -170,7 +163,7 @@ func edit(){
 	fmt.Println()
 }
 
-func find(){
+func find() {
 	fmt.Println("This command let you search your database")
 	fmt.Println("It can print search results, links or backlinks")
 	fmt.Println("Or let you open files from a search or links / backlinks of a file from a search")
@@ -190,10 +183,9 @@ func find(){
 	fmt.Println("Options:")
 	fmt.Println("  --links\tIt applies the sub command to links of the selected note instead of itself")
 	fmt.Println("  --backlinks\tIt applies the sub command to backlinks of the selected note instead of itself")
-
 }
 
-func iinit(){
+func iinit() {
 	fmt.Println("This makes creates the initial configuration")
 	fmt.Println("It never overwrites files")
 	fmt.Println("")
@@ -202,7 +194,7 @@ func iinit(){
 	fmt.Println("")
 }
 
-func migrate(){
+func migrate() {
 	fmt.Println("This makes sure the database schema is up to date")
 	fmt.Println("")
 	fmt.Println("Usage:")
@@ -210,7 +202,7 @@ func migrate(){
 	fmt.Println("")
 }
 
-func publish(){
+func publish() {
 	fmt.Println("This builds a website from your roam")
 	fmt.Println("All notes with private: true are exluded")
 	fmt.Println("")
@@ -223,7 +215,7 @@ func publish(){
 	fmt.Println()
 }
 
-func report(){
+func report() {
 	fmt.Println("This prints simple report about your roam")
 	fmt.Println("It prints the title of all your files, and all its links and backlinks")
 	fmt.Println("")
@@ -232,7 +224,7 @@ func report(){
 	fmt.Println("")
 }
 
-func stats(){
+func stats() {
 	fmt.Println("This prints simple statistics about your roam")
 	fmt.Println("")
 	fmt.Println("Usage:")
@@ -240,7 +232,7 @@ func stats(){
 	fmt.Println("")
 }
 
-func sync(){
+func sync() {
 	fmt.Println("This maintains a cache of your roam in the SQL database")
 	fmt.Println("It makes it faster and easier to do operations like search")
 	fmt.Println("")
