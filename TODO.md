@@ -13,10 +13,6 @@ I feel more and more like I want to replace org-roam with something of my own
 - Lint more
 
 ## Upcoming versions
-### v0.2.12
-- Error if --links and --backlinks are set
-- Find crashes on empty database
-- Some input validating msising on some commands
 ### v0.2.13
 - Find things that belong in utilslib
 - Utils should be broken up

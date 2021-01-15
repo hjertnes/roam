@@ -40,7 +40,14 @@ func (c *Create) Run() error {
 }
 
 // CreateFile creates a new note.
-func (c *Create) CreateFile(filepath string) error {
+func (c *Create) CreateFile() error {
+	if len(os.Args) <= 3 {
+		help.Run()
+		return nil
+	}
+
+	filepath := os.Args[2]
+
 	title, err := textinput.Run("Title")
 	if err != nil {
 		return eris.Wrap(err, "could not get title from textinput")

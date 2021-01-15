@@ -111,6 +111,11 @@ func (f *Find) selectFile(result []models.File) (*models.File, error) {
 
 // Run is the entrypoint.
 func (f *Find) Run() error {
+	if f.linksFlag && f.backlinksFlag{
+		fmt.Println("You can't use both backlinks and links at the same time")
+		return nil
+	}
+
 	search, err := textinput.Run("Search for file")
 	if err != nil {
 		return eris.Wrap(err, "failed to get search input from user")

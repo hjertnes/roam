@@ -67,7 +67,7 @@ func main() {
 	case "find":
 		utils.ErrorHandler(getFindCommand(path).Run())
 	case "create":
-		utils.ErrorHandler(getCreateCommand(path).CreateFile(os.Args[2]))
+		utils.ErrorHandler(getCreateCommand(path).CreateFile())
 	case "import":
 		utils.ErrorHandler(getCreateCommand(path).RunImport())
 	case "report":
