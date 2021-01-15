@@ -1,4 +1,6 @@
 # Changelog
+## v0.2.11
+Linting
 ## v0.2.10
 Added commands for clearing all data from database or removing the config directory
 ## v0.2.9

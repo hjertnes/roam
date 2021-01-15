@@ -2,25 +2,40 @@
 I feel more and more like I want to replace org-roam with something of my own
 
 ## TODO
-- Diagnostic v2: check that line 1 is --- and strip out multiple newlines in a row
 - Create template
 - Edit template
 - Upgrade: migrates config
-- Delete folders in sync
 - Interactive mode that will give you a dropdown of options to replace it with and edit file option
-- Find a way to tell the user there are problems they should deal with
-- Full lint. Started but had some issues
 - Add flag to getbacklinks and getlinks for private or not
-- Find replace the ugly output with markdown
 - Add a configuration thing for what will be moved during publish e.g css/js etc
-- Error if --links and --backlinks are set
 - partial sync
-- Some input validating msising on some commands
-- Find things that belong in utilslib
-- The path splitting stuff should use this regex: (?<!\\)/
-- Find crashes on empty database
-- Utils should be broken up
 - Create is a mess
 - Lint more
 
 ## Upcoming versions
+### v0.2.12
+- Error if --links and --backlinks are set
+- Find crashes on empty database
+- Some input validating msising on some commands
+### v0.2.13
+- Find things that belong in utilslib
+- Utils should be broken up
+- The path splitting stuff should use this regex: (?<!\\)/
+### v0.2.14
+- Find replace the ugly output with markdown
+- Diagnostic v2: check that line 1 is --- and strip out multiple newlines in a row
+### v0.2.15
+- Find a way to tell the user there are problems they should deal with
+### v0.2.16
+- Delete folders in sync and links
+
+
+
+
+
+
+
+
+
+
+
