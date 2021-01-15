@@ -4,6 +4,7 @@ package publish
 import (
 	"bytes"
 	"fmt"
+	"github.com/hjertnes/roam/utils/pathutils"
 	"github.com/rotisserie/eris"
 	"github.com/yuin/goldmark"
 	"io/ioutil"
@@ -149,7 +150,7 @@ func Run(path string) error {
 
 		filePath := strings.ReplaceAll(file.Path, path, outputDir)
 
-		folderPath, filename := utils.DestructPath(filePath)
+		folderPath, filename := pathutils.New(filePath).Destruct()
 
 		if !utilslib.FileExist(folderPath) {
 			err = os.MkdirAll(folderPath, constants.FolderPermission)
@@ -267,7 +268,8 @@ func buildIndex(excludePrivate bool, path string, dal dal2.Dal, folder *models.F
 
 		if strings.HasSuffix(f.Path, "index.md") {
 			if folder.Path != path {
-				output = append(output, fmt.Sprintf(`<li><a href="%s">%s</a></li>`, strings.ReplaceAll(folder.Path, path, ""), utils.GetLast(strings.ReplaceAll(folder.Path, path, ""))))
+
+				output = append(output, fmt.Sprintf(`<li><a href="%s">%s</a></li>`, strings.ReplaceAll(folder.Path, path, ""), pathutils.New(strings.ReplaceAll(folder.Path, path, "")).GetFilename()))
 			}
 		}
 	}

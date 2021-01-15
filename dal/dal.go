@@ -3,6 +3,7 @@ package dal
 
 import (
 	"context"
+	"github.com/hjertnes/roam/utils/pathutils"
 
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/hjertnes/roam/models"
@@ -166,7 +167,7 @@ func (d *dal) createFolder(path string) error {
 	parentID := utilslib.NilStringPointer()
 
 	if path != d.path {
-		p := utils.GetParent(path)
+		p := pathutils.New(path).GetParent()
 
 		err := d.createFolder(p)
 		if err != nil {
@@ -195,7 +196,7 @@ func (d *dal) createFolder(path string) error {
 
 // Create adds new file to database.
 func (d *dal) CreateFile(path, title, content string, private bool) error {
-	p := utils.RemoveFilenameFromPath(path)
+	p := pathutils.New(path).GetPathWithoutFilename()
 
 	err := d.createFolder(p)
 	if err != nil {

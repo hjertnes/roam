@@ -3,6 +3,7 @@ package create
 
 import (
 	"fmt"
+	"github.com/hjertnes/roam/utils/pathutils"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -187,7 +188,7 @@ func (c *Create) writeImport(fileContent []string, dryRun bool) error {
 		return eris.Wrapf(errs.ErrDuplicate, "file exist %s", metadata.Path)
 	}
 
-	parent := utils.GetParent(fmt.Sprintf("%s/%s", c.state.Path, metadata.Path))
+	parent := pathutils.New(fmt.Sprintf("%s/%s", c.state.Path, metadata.Path)).GetParent()
 
 	if !dryRun {
 		err = os.MkdirAll(parent, constants.FolderPermission)

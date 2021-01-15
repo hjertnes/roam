@@ -110,25 +110,6 @@ func PrintListOfLinks(output []string, links []models.File) []string {
 	return output
 }
 
-// GetFile returns a file with a id form a list of files.
-func GetFile(files []models.File, id string) (*models.File, error) {
-	var f *models.File
-
-	for i := range files {
-		if files[i].ID == id {
-			f = &files[i]
-
-			break
-		}
-	}
-
-	if f == nil {
-		return nil, eris.Wrap(errs.ErrNotFound, "no match")
-	}
-
-	return f, nil
-}
-
 // ConvertTemplateFiles convert TemplateFiles to Choice.
 func ConvertTemplateFiles(templates []models.TemplateFile) []models.Choice {
 	result := make([]models.Choice, 0)
@@ -141,40 +122,6 @@ func ConvertTemplateFiles(templates []models.TemplateFile) []models.Choice {
 	}
 
 	return result
-}
-
-// RemoveFilenameFromPath removes filename from the path.
-func RemoveFilenameFromPath(path string) string {
-	res := make([]string, 0)
-
-	elems := strings.Split(path, "/")
-
-	for _, e := range elems {
-		if strings.HasSuffix(e, ".md") {
-			continue
-		}
-
-		res = append(res, e)
-	}
-
-	return strings.Join(res, "/")
-}
-
-// GetParent takes a path and return the level above it.
-func GetParent(path string) string {
-	res := make([]string, 0)
-
-	elems := strings.Split(path, "/")
-
-	for i, e := range elems {
-		if i == len(elems)-1 {
-			continue
-		}
-
-		res = append(res, e)
-	}
-
-	return strings.Join(res, "/")
 }
 
 // BuildVectorSearch builds a postgres vector search query.
@@ -197,25 +144,6 @@ func CleanLink(input string) string {
 	return strings.ReplaceAll(strings.ReplaceAll(input, "[[", ""), "]]", "")
 }
 
-// DestructPath takes a path and returns the filename and the path without filename.
-func DestructPath(path string) (string, string) {
-	elems := strings.Split(path, "/")
-
-	folderPath := make([]string, 0)
-	filename := ""
-
-	lastElem := len(elems) - 1
-
-	for i, e := range elems {
-		if i == lastElem {
-			filename = e
-		} else {
-			folderPath = append(folderPath, e)
-		}
-	}
-
-	return strings.Join(folderPath, "/"), strings.ReplaceAll(filename, ".md", ".html")
-}
 
 // FixURL fixes various url stuff.
 func FixURL(input string) string {
@@ -224,13 +152,6 @@ func FixURL(input string) string {
 	output = strings.ReplaceAll(output, ".md", ".html")
 
 	return output
-}
-
-// GetLast returns the last part of a file path.
-func GetLast(path string) string {
-	elems := strings.Split(path, "/")
-
-	return elems[len(elems)-1]
 }
 
 // Readfile reads a file into a model.
