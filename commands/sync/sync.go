@@ -21,6 +21,24 @@ func Run(path string) error {
 		return eris.Wrap(err, "Failed to create state")
 	}
 
+	err = run(path, s)
+	if err != nil{
+		err = s.Dal.AddLog(true)
+		if err != nil{
+			return eris.Wrap(err, "failed to log failure")
+		}
+		return eris.Wrap(err, "failed to sync")
+	}
+
+	err = s.Dal.AddLog(false)
+	if err != nil{
+		return eris.Wrap(err, "failed to log success")
+	}
+
+	return nil
+}
+
+func run(path string, s *state.State) error{
 	spinner, err := spinner2.Run("")
 	if err != nil {
 		return eris.Wrap(err, "failed to create spinner")

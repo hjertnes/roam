@@ -87,6 +87,29 @@ CREATE INDEX links_idx ON links (file_fk, link_fk);`)
 	return nil
 }
 
+/*
+
+*/
+
+func (m *Migration) v3() error {
+	_, err := m.conn.Exec(m.ctx, `
+create table sync_history(
+id uuid primary key not null default gen_random_uuid() unique,
+created_at timestamp not null default timezone('utc', now()),
+failure boolean not null
+);`)
+	if err != nil {
+		return eris.Wrap(err, "failed to create sync history table")
+	}
+
+	_, err = m.conn.Exec(m.ctx, `insert into migration_history (migration) values(3);`)
+	if err != nil {
+		return eris.Wrap(err, "failed to insert migration into migration history")
+	}
+
+	return nil
+}
+
 func (m *Migration) checkIfMigrationHistoryExist() (bool, error) {
 	q := m.conn.QueryRow(
 		m.ctx,
@@ -144,6 +167,7 @@ func (m *Migration) Migrate() error {
 		if err != nil {
 			return eris.Wrap(err, "migration to v1 failed")
 		}
+		migrationNumber = 1
 	}
 
 	if migrationNumber == 1 {
@@ -151,6 +175,15 @@ func (m *Migration) Migrate() error {
 		if err != nil {
 			return eris.Wrap(err, "migration to v2 failed")
 		}
+		migrationNumber = 2
+	}
+
+	if migrationNumber == 2 {
+		err = m.v3()
+		if err != nil {
+			return eris.Wrap(err, "migration to v3 failed")
+		}
+		migrationNumber = 3
 	}
 
 	return nil

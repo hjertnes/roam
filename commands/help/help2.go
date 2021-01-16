@@ -42,6 +42,16 @@ var subCommands = map[string]func(){
 	"daily":      daily,
 	"import":     iimport,
 	"version":    version,
+	"log": log,
+}
+
+func log(){
+	fmt.Println("This command manages the statuses logged after each sync. It tells if it failed or not")
+	fmt.Println()
+	fmt.Println("usage:")
+	fmt.Println("  list\tshows all entries")
+	fmt.Println("  clear\tremoves everything in the log table")
+	fmt.Println()
 }
 
 func contains(key string) bool {
@@ -87,6 +97,7 @@ func main() {
 	fmt.Println("  sync\t\tWrites a cache of your roam into a postgres database used by search and others")
 	fmt.Println("  version\tprints current version number")
 	fmt.Println("  remove\tused to remove stuff")
+	fmt.Println("  log\t\tused to manage the sync log")
 	fmt.Println()
 	fmt.Println("Use roam help [command] for more information about a specific command")
 	fmt.Println()

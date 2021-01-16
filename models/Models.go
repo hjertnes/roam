@@ -1,6 +1,8 @@
 // Package models contain shared models
 package models
 
+import "time"
+
 // TemplateFile is the type for each item in the list of templates in the config.
 type TemplateFile struct {
 	Filename string
@@ -16,6 +18,12 @@ type Configuration struct {
 	DefaultFileExtension     string
 	Version                  int
 	Templates                []TemplateFile
+}
+
+type Log struct {
+	ID string `db:"id"`
+	Timestamp time.Time `db:"created_at"`
+	Failure bool `db:"failure"`
 }
 
 // Folder is the database model for a folder.

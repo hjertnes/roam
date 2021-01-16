@@ -3,6 +3,7 @@ package dal
 
 import (
 	"context"
+	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/utils/pathutils"
 
 	"github.com/georgysavva/scany/pgxscan"
@@ -31,6 +32,11 @@ type Dal interface {
 	GetBacklinks(fileID string) ([]models.File, error)
 	GetLinks(fileID string) ([]models.File, error)
 	Clear() error
+	AddLog(failure bool) error
+	GetLog() ([]models.Log, error)
+	WasLastSyncSuccessful() (bool, error)
+	ClearLog() error
+
 }
 
 type dal struct {
@@ -49,7 +55,12 @@ func New(ctx context.Context, conn *pgxpool.Pool, path string) Dal {
 }
 
 func (d *dal) Clear() error {
-	_, err := d.conn.Exec(d.ctx, `delete from links;`)
+	_, err := d.conn.Exec(d.ctx, `delete from sync_history;`)
+	if err != nil {
+		return eris.Wrap(err, "failed to empty sync history")
+	}
+
+	_, err = d.conn.Exec(d.ctx, `delete from links;`)
 	if err != nil {
 		return eris.Wrap(err, "failed to empty links")
 	}
@@ -189,6 +200,62 @@ func (d *dal) createFolder(path string) error {
 		parentID)
 	if err != nil {
 		return eris.Wrap(err, "failed to create folder")
+	}
+
+	return nil
+}
+
+func (d *dal) AddLog(failure bool) error{
+	_, err := d.conn.Exec(d.ctx, `insert into sync_history (failure) values($1)`, failure)
+	if err != nil{
+		return eris.Wrap(err, "failed to add log")
+	}
+
+	return nil
+}
+
+func (d *dal) GetLog() ([]models.Log, error){
+	result := make([]models.Log, 0)
+
+	res, err := d.conn.Query(d.ctx, `SELECT ID, created_at, failure from sync_history order by created_at asc`)
+	if err != nil {
+		return result, eris.Wrap(err, "failed to run list query")
+	}
+
+	err = pgxscan.ScanAll(&result, res)
+	if err != nil {
+		return result, eris.Wrap(err, "failed to scan list query")
+	}
+
+	return result, nil
+}
+
+func (d *dal) WasLastSyncSuccessful() (bool, error){
+	result := make([]models.Log, 0)
+
+	res, err := d.conn.Query(d.ctx, `SELECT ID, created_at, failure from sync_history order by created_at desc limit 1`)
+	if err != nil {
+		return false, eris.Wrap(err, "failed to run list query")
+	}
+
+
+
+	err = pgxscan.ScanAll(&result, res)
+	if err != nil {
+		return false, eris.Wrap(err, "failed to scan list query")
+	}
+
+	if len(result) == 0{
+		return false, eris.Wrap(errs.ErrNever, "never ran")
+	}
+
+	return !result[0].Failure, nil
+}
+
+func (d *dal) ClearLog() error{
+	_, err := d.conn.Exec(d.ctx, `delete from sync_history`)
+	if err != nil{
+		return eris.Wrap(err, "failed to add log")
 	}
 
 	return nil

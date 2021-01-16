@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/hjertnes/roam/commands/synclog"
 	"os"
 
 	"github.com/hjertnes/roam/commands/clear"
@@ -76,6 +77,8 @@ func main() {
 		utils.ErrorHandler(getCreateCommand(path).Run())
 	case "stats":
 		utils.ErrorHandler(stats.Run(path))
+	case "log":
+		utils.ErrorHandler(synclog.Run(path))
 	case "version":
 		version.Run()
 	default:

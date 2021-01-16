@@ -1,4 +1,8 @@
 # Changelog
+## v0.2.16
+- Added log for sync
+- Message before each command telling if there was a problem with the last sync
+- Command to show and clear the log
 ## v0.2.15
 - Fixed crashing bug in pathuti;s
 ## v0.2.14

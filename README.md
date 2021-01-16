@@ -112,7 +112,11 @@ This section is structured a bit weird. But I have placed example commands at to
 `roam clear config`
 
 Used to remove database content or the config dir
+### Log
+`roam log clear`
+`roam log list`
 
+Lists or clears the log written after each sync. It tells if the sync was successful or not.
 ### Sync
 `roam sync`
 

@@ -10,7 +10,7 @@ import (
 
 // Run is the entry point.
 func Run(path string) error {
-	s, err := state.New(path)
+	s, err := state.NewWithoutStatusCheck(path)
 	if err != nil {
 		return eris.Wrap(err, "Failed to create state")
 	}
