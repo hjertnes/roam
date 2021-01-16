@@ -3,7 +3,11 @@ package find
 
 import (
 	"fmt"
+	"github.com/ericaro/frontmatter"
+	"io/ioutil"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/hjertnes/roam/commands/help"
@@ -97,7 +101,7 @@ func (f *Find) query(files []models.File) error {
 func (f *Find) selectFile(result []models.File) (*models.File, error) {
 	var choice *models.File
 
-	c, err := selectinput.Run(utils.FilesToChoices(result), "Select file")
+	c, err := selectinput.Run(filesToChoices(result), "Select file")
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get selection from user")
 	}
@@ -221,7 +225,7 @@ func (f *Find) Run() error {
 	}
 
 	if f.subcommand == edit {
-		err = utils.EditNote(choice.Path)
+		err = editNote(choice.Path)
 		if err != nil {
 			return eris.Wrap(err, "failed to edit file")
 		}
@@ -230,7 +234,7 @@ func (f *Find) Run() error {
 	}
 
 	if f.subcommand == view {
-		err = utils.ViewNote(choice.Path)
+		err = viewNote(choice.Path)
 		if err != nil {
 			return eris.Wrap(err, "failed to edit file")
 		}
@@ -239,4 +243,49 @@ func (f *Find) Run() error {
 	}
 
 	return nil
+}
+
+func editNote(path string) error {
+	editor := utils.GetEditor()
+	cmd := exec.Command(editor, path) // #nosec G204
+
+	err := cmd.Start()
+	if err != nil {
+		return eris.Wrap(err, "could not open file in editor")
+	}
+
+	return nil
+}
+
+func viewNote(path string) error {
+	data, err := ioutil.ReadFile(filepath.Clean(path))
+	if err != nil {
+		return eris.Wrap(err, "could not read file")
+	}
+
+	metadata := models.Frontmatter{}
+
+	err = frontmatter.Unmarshal(data, &metadata)
+	if err != nil {
+		return eris.Wrap(err, "could not unmarkshal frontmatter")
+	}
+
+	err = utils.RenderMarkdown(fmt.Sprintf("# %s\n%s", metadata.Title, metadata.Content))
+
+	if err != nil {
+		return eris.Wrap(err, "failed to render markdown file")
+	}
+
+	return nil
+}
+
+
+func filesToChoices(input []models.File) []models.Choice {
+	paths := make([]models.Choice, 0)
+
+	for _, r := range input {
+		paths = append(paths, models.Choice{Title: r.Path, Value: r.ID})
+	}
+
+	return paths
 }

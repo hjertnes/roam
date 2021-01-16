@@ -3,12 +3,13 @@ package dal
 
 import (
 	"context"
+	"fmt"
 	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/utils/pathutils"
+	"strings"
 
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/hjertnes/roam/models"
-	"github.com/hjertnes/roam/utils"
 	utilslib "github.com/hjertnes/utils"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rotisserie/eris"
@@ -380,7 +381,7 @@ func (d *dal) FindFileFuzzy(search string) ([]models.File, error) {
 	res, err := d.conn.Query(d.ctx, `
 SELECT ID, path, title, private
 FROM files 
-WHERE title_tokens @@ to_tsquery($1);`, utils.BuildVectorSearch(search))
+WHERE title_tokens @@ to_tsquery($1);`, buildVectorSearch(search))
 	if err != nil {
 		return result, eris.Wrap(err, "failed to run search query")
 	}
@@ -538,4 +539,18 @@ select ID, path, title, private from files where ID in
 		return result, nil
 	}
 
+}
+
+func buildVectorSearch(input string) string {
+	if !strings.Contains(input, " ") {
+		return fmt.Sprintf("%s:*", input)
+	}
+
+	output := make([]string, 0)
+
+	for _, l := range strings.Split(input, " ") {
+		output = append(output, fmt.Sprintf("%s:*", l))
+	}
+
+	return strings.Join(output, "&")
 }

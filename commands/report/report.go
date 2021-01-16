@@ -3,14 +3,12 @@ package report
 
 import (
 	"fmt"
-	"strings"
-
-	"github.com/charmbracelet/glamour"
 	"github.com/hjertnes/roam/models"
 	"github.com/hjertnes/roam/state"
 	"github.com/hjertnes/roam/utils"
 	spinner2 "github.com/hjertnes/roam/widgets/spinner"
 	"github.com/rotisserie/eris"
+	"strings"
 )
 
 // Run lists files and their links.
@@ -45,21 +43,10 @@ func Run(path string) error {
 		}
 	}
 
-	r, _ := glamour.NewTermRenderer(
-		glamour.WithAutoStyle(),
-	)
-
-	out, err := r.Render(strings.Join(output, "\n"))
-	if err != nil {
-		return eris.Wrap(err, "failed to render markdown file")
+	err = utils.RenderMarkdown(strings.Join(output, "\n"))
+	if err != nil{
+		return eris.Wrap(err, "failed to render")
 	}
-
-	err = spinner.Stop()
-	if err != nil {
-		return eris.Wrap(err, "failed to stop spinner")
-	}
-
-	fmt.Print(out)
 
 	return nil
 }
@@ -79,11 +66,23 @@ func buildReport(s *state.State, file *models.File, output []string) ([]string, 
 
 	output = append(output, "## Links")
 
-	output = utils.PrintListOfLinks(output, links)
+	output = printListOfLinks(output, links)
 
 	output = append(output, "## Backlinks")
 
-	output = utils.PrintListOfLinks(output, backlinks)
+	output = printListOfLinks(output, backlinks)
 
 	return output, nil
+}
+
+func printListOfLinks(output []string, links []models.File) []string {
+	if len(links) == 0 {
+		output = append(output, "No links")
+	}
+
+	for _, link := range links {
+		output = append(output, fmt.Sprintf("- <%s>\n", link.Path))
+	}
+
+	return output
 }

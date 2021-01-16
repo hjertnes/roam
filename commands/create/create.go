@@ -3,6 +3,8 @@ package create
 
 import (
 	"fmt"
+	"github.com/ericaro/frontmatter"
+	"github.com/hjertnes/roam/models"
 	"github.com/hjertnes/roam/utils/pathutils"
 	"io/ioutil"
 	"os"
@@ -55,7 +57,7 @@ func (c *Create) CreateFile() error {
 	}
 
 	template, err := selectinput.Run(
-		utils.ConvertTemplateFiles(c.state.Conf.Templates), "Template")
+		convertTemplateFiles(c.state.Conf.Templates), "Template")
 	if err != nil {
 		return eris.Wrap(err, "could not get template selection from selectinput")
 	}
@@ -171,10 +173,21 @@ func (c *Create) doImport(file string, dryRun bool) error {
 	return nil
 }
 
+func readfileImport(data string) (*models.ImportFrontmatter, error) {
+	metadata := models.ImportFrontmatter{}
+
+	err := frontmatter.Unmarshal([]byte(data), &metadata)
+	if err != nil {
+		return nil, eris.Wrap(err, "failed to unmarshal frontmatter")
+	}
+
+	return &metadata, nil
+}
+
 func (c *Create) writeImport(fileContent []string, dryRun bool) error {
 	data := strings.Join(fileContent, "\n")
 
-	metadata, err := utils.ReadfileImport(data)
+	metadata, err := readfileImport(data)
 	if err != nil {
 		return eris.Wrap(err, "failed to read file for import")
 	}
@@ -268,4 +281,17 @@ func (c *Create) createFile(fp, title string, templatedata []byte) error {
 	}
 
 	return nil
+}
+
+func convertTemplateFiles(templates []models.TemplateFile) []models.Choice {
+	result := make([]models.Choice, 0)
+
+	for _, f := range templates {
+		result = append(result, models.Choice{
+			Title: f.Title,
+			Value: f.Filename,
+		})
+	}
+
+	return result
 }

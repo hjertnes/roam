@@ -8,8 +8,6 @@ I feel more and more like I want to replace org-roam with something of my own
 - Look over all code and make a list of things to do
 
 ## Upcoming versions
-### v.0.2.19
-- Kill utils
 ### v.0.2.20
 - Create template
 - Edit template

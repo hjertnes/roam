@@ -139,7 +139,7 @@ func Run(path string) error {
 				clean = strings.ReplaceAll(matches[0].Path, path, outputDir)
 			}
 
-			metadata.Content = strings.ReplaceAll(metadata.Content, link, fmt.Sprintf("[%s](%s)", utils.CleanLink(link), utils.FixURL(strings.ReplaceAll(clean, outputDir, ""))))
+			metadata.Content = strings.ReplaceAll(metadata.Content, link, fmt.Sprintf("[%s](%s)", utils.CleanLink(link), fixURL(strings.ReplaceAll(clean, outputDir, ""))))
 		}
 
 		var buf bytes.Buffer
@@ -175,7 +175,7 @@ func Run(path string) error {
 		}
 
 		for _, l := range bl {
-			lt := fmt.Sprintf("- [%s](%s)", l.Title, utils.FixURL(strings.ReplaceAll(l.Path, outputDir, "")))
+			lt := fmt.Sprintf("- [%s](%s)", l.Title, fixURL(strings.ReplaceAll(l.Path, outputDir, "")))
 			backlinks = append(backlinks, lt)
 		}
 
@@ -298,4 +298,12 @@ func buildIndex(excludePrivate bool, path string, dal dal2.Dal, folder *models.F
 	output = append(output, "</ul>")
 
 	return output, nil
+}
+
+func fixURL(input string) string {
+	output := strings.ReplaceAll(input, " ", "%20")
+
+	output = strings.ReplaceAll(output, ".md", ".html")
+
+	return output
 }
