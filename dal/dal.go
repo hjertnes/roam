@@ -196,7 +196,7 @@ func (d *dal) createFolder(path string) error {
 
 // Create adds new file to database.
 func (d *dal) CreateFile(path, title, content string, private bool) error {
-	p := pathutils.New(path).GetPathWithoutFilename()
+	p := pathutils.New(path).GetParent()
 
 	err := d.createFolder(p)
 	if err != nil {

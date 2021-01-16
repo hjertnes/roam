@@ -16,18 +16,15 @@ func New(path string) *Path{
 	}
 }
 
-func (p *Path) GetPathWithoutFilename() string{
+func (p *Path) GetParent() string{
 	return strings.Join(p.elements[0:len(p.elements)-1], "/")
 }
 
-func (p *Path) GetParent() string{
-	return strings.Join(p.elements[0:len(p.elements)-2], "/")
-}
-
-func (p *Path) GetFilename() string{
+// Return the stop most part of path
+func (p *Path) GetLast() string{
 	return p.elements[len(p.elements)-1]
 }
 
 func (p *Path) Destruct() (string, string){
-	return p.GetPathWithoutFilename(), p.GetFilename()
+	return p.GetParent(), p.GetLast()
 }

@@ -1,4 +1,6 @@
 # Changelog
+## v0.2.15
+- Fixed crashing bug in pathuti;s
 ## v0.2.14
 - Added more checks to diagnostics
 - Replaced some output with rendered markdown

@@ -269,7 +269,7 @@ func buildIndex(excludePrivate bool, path string, dal dal2.Dal, folder *models.F
 		if strings.HasSuffix(f.Path, "index.md") {
 			if folder.Path != path {
 
-				output = append(output, fmt.Sprintf(`<li><a href="%s">%s</a></li>`, strings.ReplaceAll(folder.Path, path, ""), pathutils.New(strings.ReplaceAll(folder.Path, path, "")).GetFilename()))
+				output = append(output, fmt.Sprintf(`<li><a href="%s">%s</a></li>`, strings.ReplaceAll(folder.Path, path, ""), pathutils.New(strings.ReplaceAll(folder.Path, path, "")).GetLast()))
 			}
 		}
 	}

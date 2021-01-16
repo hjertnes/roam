@@ -11,11 +11,12 @@ I feel more and more like I want to replace org-roam with something of my own
 - partial sync
 - Create is a mess
 - Lint more
+- fix command to auto fix some stuff
 
 ## Upcoming versions
-### v0.2.15
-- Find a way to tell the user there are problems they should deal with
 ### v0.2.16
+- Find a way to tell the user there are problems they should deal with
+### v0.2.17
 - Delete folders in sync and links
 
 

@@ -12,6 +12,7 @@ require (
 	github.com/jackc/pgx/v4 v4.10.1
 	github.com/muesli/termenv v0.7.4 // indirect
 	github.com/rotisserie/eris v0.5.0
+	github.com/stretchr/testify v1.5.1
 	github.com/theckman/yacspin v0.8.0
 	github.com/yuin/goldmark v1.2.0
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
