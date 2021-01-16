@@ -1,4 +1,6 @@
 # Changelog
+## v0.2.18
+- Added options to getlinks and getbacklinks to if private should be included or not
 ## v0.2.17
 - Delete folders in sync
 ## v0.2.16

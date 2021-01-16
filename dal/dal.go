@@ -30,8 +30,8 @@ type Dal interface {
 	Stats() (int, int, int, int, error)
 	AddLink(fileID, linkedToFile string) error
 	DeleteLink(fileID, linkedToFile string) error
-	GetBacklinks(fileID string) ([]models.File, error)
-	GetLinks(fileID string) ([]models.File, error)
+	GetBacklinks(fileID string, includePrivate bool) ([]models.File, error)
+	GetLinks(fileID string, includePrivate bool) ([]models.File, error)
 	Clear() error
 	AddLog(failure bool) error
 	GetLog() ([]models.Log, error)
@@ -468,40 +468,74 @@ func (d *dal) DeleteLink(fileID, linkedToFile string) error {
 }
 
 // GetBacklinks returns the backlinks of a file.
-func (d *dal) GetBacklinks(fileID string) ([]models.File, error) {
+func (d *dal) GetBacklinks(fileID string, includePrivate bool) ([]models.File, error) {
 	result := make([]models.File, 0)
 
-	res, err := d.conn.Query(d.ctx, `
+	if includePrivate{
+		res, err := d.conn.Query(d.ctx, `
 select ID, path, title, private from files where ID in 
 (SELECT file_fk from links WHERE link_fk=$1);`, fileID)
-	if err != nil {
-		return result, eris.Wrap(err, "failed to query for list of links")
-	}
+		if err != nil {
+			return result, eris.Wrap(err, "failed to query for list of links")
+		}
 
-	err = pgxscan.ScanAll(&result, res)
-	if err != nil {
-		return result, eris.Wrap(err, "failed to scan query for list of links")
-	}
+		err = pgxscan.ScanAll(&result, res)
+		if err != nil {
+			return result, eris.Wrap(err, "failed to scan query for list of links")
+		}
 
-	return result, nil
+		return result, nil
+	}else{
+		res, err := d.conn.Query(d.ctx, `
+select ID, path, title, private from files where ID in 
+(SELECT file_fk from links WHERE link_fk=$1) and private=false;`, fileID)
+		if err != nil {
+			return result, eris.Wrap(err, "failed to query for list of links")
+		}
+
+		err = pgxscan.ScanAll(&result, res)
+		if err != nil {
+			return result, eris.Wrap(err, "failed to scan query for list of links")
+		}
+
+		return result, nil
+	}
 }
 
 // GetLinks returns the links of a file.
-func (d *dal) GetLinks(fileID string) ([]models.File, error) {
+func (d *dal) GetLinks(fileID string, includePrivate bool) ([]models.File, error) {
 	result := make([]models.File, 0)
 
-	res, err := d.conn.Query(
-		d.ctx, `
+	if includePrivate{
+		res, err := d.conn.Query(
+			d.ctx, `
 select ID, path, title, private from files where ID in 
 (SELECT link_fk from links WHERE file_fk=$1);`, fileID)
-	if err != nil {
-		return result, eris.Wrap(err, "failed to query for list of links")
+		if err != nil {
+			return result, eris.Wrap(err, "failed to query for list of links")
+		}
+
+		err = pgxscan.ScanAll(&result, res)
+		if err != nil {
+			return result, eris.Wrap(err, "failed to scan query for list of links")
+		}
+
+		return result, nil
+	}else{
+		res, err := d.conn.Query(
+			d.ctx, `
+select ID, path, title, private from files where ID in 
+(SELECT link_fk from links WHERE file_fk=$1) and private=false;`, fileID)
+		if err != nil {
+			return result, eris.Wrap(err, "failed to query for list of links")
+		}
+
+		err = pgxscan.ScanAll(&result, res)
+		if err != nil {
+			return result, eris.Wrap(err, "failed to scan query for list of links")
+		}
+
+		return result, nil
 	}
 
-	err = pgxscan.ScanAll(&result, res)
-	if err != nil {
-		return result, eris.Wrap(err, "failed to scan query for list of links")
-	}
-
-	return result, nil
 }

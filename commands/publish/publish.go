@@ -169,7 +169,7 @@ func Run(path string) error {
 
 		backlinks = append(backlinks, "## Backlinks")
 
-		bl, err := s.Dal.GetBacklinks(file.ID)
+		bl, err := s.Dal.GetBacklinks(file.ID, !excludePrivate)
 		if err != nil {
 			return eris.Wrap(err, "coult not get backlinks")
 		}

@@ -113,7 +113,7 @@ func run(path string, s *state.State) error{
 
 		links := constants.NoteLinkRegexp.FindAllString(metadata.Content, -1)
 
-		currentInDatabaseLinks, err := s.Dal.GetLinks(file.ID)
+		currentInDatabaseLinks, err := s.Dal.GetLinks(file.ID, true)
 		if err != nil {
 			return eris.Wrap(err, "failed to get current links")
 		}

@@ -67,12 +67,12 @@ func Run(path string) error {
 func buildReport(s *state.State, file *models.File, output []string) ([]string, error) {
 	output = append(output, fmt.Sprintf("# %s", file.Path))
 
-	links, err := s.Dal.GetLinks(file.ID)
+	links, err := s.Dal.GetLinks(file.ID, true)
 	if err != nil {
 		return output, eris.Wrap(err, "failed to get list of links")
 	}
 
-	backlinks, err := s.Dal.GetBacklinks(file.ID)
+	backlinks, err := s.Dal.GetBacklinks(file.ID, true)
 	if err != nil {
 		return output, eris.Wrap(err, "failed to get list of backlinks")
 	}

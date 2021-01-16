@@ -178,14 +178,14 @@ func (f *Find) Run() error {
 		}
 
 		if f.linksFlag {
-			links, err = f.state.Dal.GetLinks(choice.ID)
+			links, err = f.state.Dal.GetLinks(choice.ID, true)
 			if err != nil {
 				return eris.Wrap(err, "failed to get links")
 			}
 		}
 
 		if f.backlinksFlag {
-			links, err = f.state.Dal.GetBacklinks(choice.ID)
+			links, err = f.state.Dal.GetBacklinks(choice.ID, true)
 			if err != nil {
 				return eris.Wrap(err, "failed to get links")
 			}
