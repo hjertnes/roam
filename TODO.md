@@ -15,16 +15,3 @@ I feel more and more like I want to replace org-roam with something of my own
 - Kill utils
 
 ## Upcoming versions
-### v0.2.17
-- Delete folders in sync and links
-
-
-
-
-
-
-
-
-
-
-

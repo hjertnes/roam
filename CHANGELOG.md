@@ -1,4 +1,6 @@
 # Changelog
+## v0.2.17
+- Delete folders in sync
 ## v0.2.16
 - Added log for sync
 - Message before each command telling if there was a problem with the last sync

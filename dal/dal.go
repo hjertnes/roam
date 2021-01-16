@@ -18,6 +18,7 @@ import (
 type Dal interface {
 	FileExists(path string) (bool, error)
 	GetFiles() ([]models.File, error)
+	GetFolders()([]models.Folder, error)
 	GetFolderFiles(folderID string) ([]models.File, error)
 	GetSubFolders(folderID string) ([]models.Folder, error)
 	GetRootFolder() (*models.Folder, error)
@@ -153,6 +154,22 @@ func (d *dal) GetSubFolders(folderID string) ([]models.Folder, error) {
 	err = pgxscan.ScanAll(&result, q)
 	if err != nil {
 		return result, eris.Wrap(err, "could not get sub folder")
+	}
+
+	return result, nil
+}
+
+func (d *dal) GetFolders() ([]models.Folder, error) {
+	var result []models.Folder
+
+	q, err := d.conn.Query(d.ctx, `select id, path from folders`)
+	if err != nil {
+		return result, eris.Wrap(err, "could not get folders")
+	}
+
+	err = pgxscan.ScanAll(&result, q)
+	if err != nil {
+		return result, eris.Wrap(err, "could not get folders")
 	}
 
 	return result, nil
@@ -311,6 +328,25 @@ func (d *dal) DeleteFiles() error {
 			_, err = d.conn.Exec(d.ctx, `delete from files where id=$1`, r.ID)
 			if err != nil {
 				return eris.Wrap(err, "failed to delete file")
+			}
+		}
+	}
+
+	folders, err := d.GetFolders()
+	if err != nil {
+		return eris.Wrap(err, "failed to get list of folders")
+	}
+
+	for _, r := range folders {
+		if !utilslib.FileExist(r.Path) {
+			_, err = d.conn.Exec(d.ctx, `delete from folders where parent_fk=$1`, r.ID)
+			if err != nil {
+				return eris.Wrap(err, "failed to delete folder")
+			}
+
+			_, err = d.conn.Exec(d.ctx, `delete from folders where id=$1`, r.ID)
+			if err != nil {
+				return eris.Wrap(err, "failed to delete folder")
 			}
 		}
 	}
