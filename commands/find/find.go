@@ -32,7 +32,7 @@ type Find struct {
 
 const query = "query"
 
-const edit = "edit"
+const edit = "configedit"
 
 const view = "view"
 
@@ -227,7 +227,7 @@ func (f *Find) Run() error {
 	if f.subcommand == edit {
 		err = editNote(choice.Path)
 		if err != nil {
-			return eris.Wrap(err, "failed to edit file")
+			return eris.Wrap(err, "failed to configedit file")
 		}
 
 		return nil
@@ -236,7 +236,7 @@ func (f *Find) Run() error {
 	if f.subcommand == view {
 		err = viewNote(choice.Path)
 		if err != nil {
-			return eris.Wrap(err, "failed to edit file")
+			return eris.Wrap(err, "failed to configedit file")
 		}
 
 		return nil

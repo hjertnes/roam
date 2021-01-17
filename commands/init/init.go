@@ -12,43 +12,6 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-const defaultTemplate = `---
-title: "$$TITLE$$"
-private: false
----
-`
-
-const dailyTemplate = `---
-title: "$$DATE$$"
-private: false
----
-`
-
-const publishTemplate = `<!DOCTYPE html>
-<html lang="en-us">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>hjertnes.wiki</title>
-	<link rel="stylesheet" href="/style.css">
-</head>
-<body>
-    <header>
-      <h1><a href="https://hjertnes.wiki/">hjertnes.wiki </a></h1>
-    </a>
-    </header>
-	<main>
-<article>
-<h1>$$TITLE$$</h1>
-<div>$$TEXT$$</div>
-<div<$$BACKLINKS$$</div>
-
-</article>
-</main>
-</body>
-</html>`
-
 // Run creates a config file.
 func Run(path string) error {
 	configFolder := fmt.Sprintf("%s/.config", path)
@@ -96,12 +59,12 @@ func createTemplateDir(configFolder string) error {
 			return eris.Wrap(err, "could not create templates folder")
 		}
 
-		err = ioutil.WriteFile(fmt.Sprintf("%s/default.txt", templatesDir), []byte(defaultTemplate), constants.FilePermission)
+		err = ioutil.WriteFile(fmt.Sprintf("%s/default.txt", templatesDir), []byte(constants.DefaultTemplate), constants.FilePermission)
 		if err != nil {
 			return eris.Wrap(err, "could not create default template")
 		}
 
-		err = ioutil.WriteFile(fmt.Sprintf("%s/daily.txt", templatesDir), []byte(dailyTemplate), constants.FilePermission)
+		err = ioutil.WriteFile(fmt.Sprintf("%s/daily.txt", templatesDir), []byte(constants.DefaultTemplate), constants.FilePermission)
 		if err != nil {
 			return eris.Wrap(err, "could not create daily note template")
 		}
@@ -118,7 +81,7 @@ func createPublishDir(configFolder string) error {
 			return eris.Wrap(err, "could not create publish folder")
 		}
 
-		err = ioutil.WriteFile(fmt.Sprintf("%s/template.html", publishDir), []byte(publishTemplate), constants.FilePermission)
+		err = ioutil.WriteFile(fmt.Sprintf("%s/template.html", publishDir), []byte(constants.PublishTemplate), constants.FilePermission)
 		if err != nil {
 			return eris.Wrap(err, "failed to write template")
 		}

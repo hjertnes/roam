@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/hjertnes/roam/commands/synclog"
+	"github.com/hjertnes/roam/commands/template"
 	"github.com/hjertnes/roam/errs"
 	utilslib "github.com/hjertnes/utils"
 	"github.com/rotisserie/eris"
@@ -13,7 +14,7 @@ import (
 	"github.com/hjertnes/roam/commands/clear"
 	"github.com/hjertnes/roam/commands/create"
 	"github.com/hjertnes/roam/commands/diagnostic"
-	"github.com/hjertnes/roam/commands/edit"
+	"github.com/hjertnes/roam/commands/configedit"
 	"github.com/hjertnes/roam/commands/find"
 	"github.com/hjertnes/roam/commands/help"
 	iinit "github.com/hjertnes/roam/commands/init"
@@ -76,6 +77,13 @@ func getFindCommand(path string) *find.Find {
 	return c
 }
 
+func getTemplateCommand(path string) *template.Template{
+	t, err := template.New(path)
+	errorHandler(err)
+
+	return t
+}
+
 func main() {
 	path := getPath()
 
@@ -94,8 +102,8 @@ func main() {
 		errorHandler(publish.Run(path))
 	case "diagnostic":
 		errorHandler(diagnostic.Run(path))
-	case "edit":
-		errorHandler(edit.Run(path))
+	case "config":
+		errorHandler(configedit.Run(path))
 	case "migrate":
 		errorHandler(migrate.Run(path))
 	case "sync":
@@ -116,6 +124,8 @@ func main() {
 		errorHandler(synclog.Run(path))
 	case "version":
 		version.Run()
+	case "template":
+		errorHandler(getTemplateCommand(path).Run())
 	default:
 		help.Run()
 	}

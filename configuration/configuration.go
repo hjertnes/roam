@@ -2,10 +2,10 @@
 package configuration
 
 import (
+	"github.com/hjertnes/roam/constants"
 	"io/ioutil"
 	"path"
 
-	"github.com/hjertnes/roam/constants"
 	"github.com/hjertnes/roam/models"
 	"github.com/rotisserie/eris"
 	"gopkg.in/yaml.v2"
@@ -50,6 +50,22 @@ func CreateConfigurationFile(filename string) error {
 	}
 
 	data, err := yaml.Marshal(&config)
+	if err != nil {
+		return eris.Wrap(err, "failed to marshal config file")
+	}
+
+	err = ioutil.WriteFile(filename, data, constants.FilePermission)
+
+	if err != nil {
+		return eris.Wrap(err, "failed to write config file")
+	}
+
+	return nil
+}
+
+
+func WriteConfigurationFile(config *models.Configuration, filename string) error {
+	data, err := yaml.Marshal(config)
 	if err != nil {
 		return eris.Wrap(err, "failed to marshal config file")
 	}

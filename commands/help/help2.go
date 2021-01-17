@@ -31,7 +31,7 @@ var subCommands = map[string]func(){
 	"create":     create,
 	"clear":      clear,
 	"diagnostic": diagnostic,
-	"edit":       edit,
+	"configedit":       edit,
 	"find":       find,
 	"init":       iinit,
 	"migrate":    migrate,
@@ -42,7 +42,19 @@ var subCommands = map[string]func(){
 	"daily":      daily,
 	"import":     iimport,
 	"version":    version,
+	"template": template,
 	"log": log,
+}
+
+func template(){
+	fmt.Println("This command let you manage templates")
+	fmt.Println()
+	fmt.Println("usage:")
+	fmt.Println("  list\tlists all templates")
+	fmt.Println("  add\tadd a new template")
+	fmt.Println("  edit\tedites an template")
+	fmt.Println("  delete\tdeletes an template")
+	fmt.Println()
 }
 
 func log(){
@@ -86,7 +98,7 @@ func main() {
 	fmt.Println("  daily\tCreates or opens a daily note file")
 	fmt.Println("  import\tBulk import from a single file")
 	fmt.Println("  diagnostic\tChecks your note collection for errors or other problems")
-	fmt.Println("  edit\t\tEasy access to configuration files")
+	fmt.Println("  config\t\tEasy access to configuration file")
 	fmt.Println("  find\t\tQuery your roam database")
 	fmt.Println("  help\t\tHelp like this one")
 	fmt.Println("  init\t\tSets up initial configuration")
@@ -98,6 +110,7 @@ func main() {
 	fmt.Println("  version\tprints current version number")
 	fmt.Println("  remove\tused to remove stuff")
 	fmt.Println("  log\t\tused to manage the sync log")
+	fmt.Println("  template\tused to manage templates")
 	fmt.Println()
 	fmt.Println("Use roam help [command] for more information about a specific command")
 	fmt.Println()
@@ -166,11 +179,10 @@ func diagnostic() {
 }
 
 func edit() {
-	fmt.Println("It makes it easy to open config files and templates")
-	fmt.Println("Currently only supports config file")
+	fmt.Println("Opens your config file in EDITOR")
 	fmt.Println()
 	fmt.Println("Usage:")
-	fmt.Println("  roam edit config")
+	fmt.Println("  roam config")
 	fmt.Println()
 }
 
@@ -188,7 +200,7 @@ func find() {
 	fmt.Println()
 	fmt.Println("Sub-commands:")
 	fmt.Println("  query\t[default] Prints the files matching the search")
-	fmt.Println("  edit\tOpens selected file in EDITOR")
+	fmt.Println("  configedit\tOpens selected file in EDITOR")
 	fmt.Println("  view\tRenders selected file in terminal")
 	fmt.Println("")
 	fmt.Println("Options:")

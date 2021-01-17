@@ -146,9 +146,16 @@ Note, the directories doesn't have to exist, the command will create them.
 
 Currently this only creates notes, but this will be extended to creating templates etc in the future 
 ### Edit
-`roam edit config`
+`roam config`
 
-Opens the configuration in EDITOR. In the future this will be extended to more features like editing templates etc
+Opens the configuration in EDITOR.
+### Template
+`roam template list`
+`roam template add`
+`roam template edit`
+`roam template delete`
+
+Is a command to manage templates
 ### Import
 `roam import ~/file/to/import.md`
 `roam import ~/file/to/import.md --dry`
