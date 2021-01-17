@@ -51,6 +51,8 @@ func Run(choices []models.Choice, label string) (*models.Choice, error) {
 			continue
 		}
 
+		valueAsInt--
+
 		if valueAsInt < 0 || valueAsInt >= len(choices) {
 			status = false
 

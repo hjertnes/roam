@@ -159,7 +159,7 @@ func Run(path string) error {
 			}
 		}
 
-		var fullFilePath = fmt.Sprintf("%s/%s", folderPath, filename)
+		var fullFilePath = fmt.Sprintf("%s/%s", folderPath, strings.ReplaceAll(filename, ".md", ".html"))
 
 		out := string(template)
 		out = strings.ReplaceAll(out, "$$TITLE$$", metadata.Title)

@@ -1,4 +1,9 @@
 # Changelog
+## v0.2.20
+- Published wrote html to .md instead of .html
+- Fixed selectinput because markdown changed it to using 1 indexed lists
+## v0.2.19
+Removed most of the stuff in utils
 ## v0.2.18
 - Added options to getlinks and getbacklinks to if private should be included or not
 ## v0.2.17
