@@ -9,6 +9,10 @@ type TemplateFile struct {
 	Title    string
 }
 
+type Publish struct {
+	FilesToCopy []string
+
+}
 // Configuration is the type for the config file model.
 type Configuration struct {
 	TimeFormat               string
@@ -18,6 +22,7 @@ type Configuration struct {
 	DefaultFileExtension     string
 	Version                  int
 	Templates                []TemplateFile
+	Publish *Publish
 }
 
 type Log struct {

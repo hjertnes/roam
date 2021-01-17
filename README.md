@@ -34,6 +34,9 @@ They are kind of obvious, but dateformat are used when you only need a date, tim
 #### databaseconnectionstring
 This is used to connect to the database. It is a standard postgres connection string.
 
+#### publish
+Will contain various stuff related to publishing your roam as a website. Currently just FilesToCopy that is a list of file ext that will be copied. The default is various image files + css and js files. 
+
 #### defaultfileextension
 Not in use yet. Might be removed in the future 
 #### version

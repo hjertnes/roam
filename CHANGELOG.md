@@ -1,4 +1,10 @@
 # Changelog
+## v0.3.0
+Just bumped it to v0.3.0 because this .22 version number is dumb
+## v0.2.22
+Added a config for what is copied to output during publish
+## v0.2.21
+Added commands to manage templates (CRUD)
 ## v0.2.20
 - Published wrote html to .md instead of .html
 - Fixed selectinput because markdown changed it to using 1 indexed lists

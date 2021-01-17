@@ -13,11 +13,6 @@ I feel more and more like I want to replace org-roam with something of my own
 - Find
 - Create
 
-## Upcoming versions
-### v.0.2.22
-- Add a configuration thing for what will be moved during publish e.g css/js etc
-### v.0.2.23
-- fix command to auto fix some stuff
-### v.0.2.24
-- Lint more
-### Then call it a v0.3.0
+### Misc
+- Lint
+- Tests

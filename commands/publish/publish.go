@@ -223,7 +223,7 @@ func Run(path string) error {
 			return nil
 		}
 
-		if strings.HasSuffix(strings.ToLower(path), ".css") || strings.HasSuffix(strings.ToLower(path), ".js") || strings.HasSuffix(strings.ToLower(path), ".jpg") || strings.HasSuffix(strings.ToLower(path), ".jpeg") || strings.HasSuffix(strings.ToLower(path), ".png") {
+		if contains(s.Conf.Publish.FilesToCopy, path){
 			to := strings.ReplaceAll(path, fmt.Sprintf("%s/.config/publish", p), outputDir)
 
 			data, err := ioutil.ReadFile(path)
@@ -246,6 +246,17 @@ func Run(path string) error {
 	}
 
 	return nil
+}
+
+func contains(patterns []string, filename string) bool{
+	lowerCaseFilename := strings.ToLower(filename)
+	for _, i := range patterns{
+		if strings.HasSuffix(lowerCaseFilename, i){
+			return true
+		}
+	}
+
+	return false
 }
 
 func buildIndex(excludePrivate bool, path string, dal dal2.Dal, folder *models.Folder, o []string) ([]string, error) {

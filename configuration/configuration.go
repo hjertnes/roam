@@ -11,6 +11,25 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+func updateConfig(conf *models.Configuration) bool{
+	changed := false
+	if conf.Publish == nil{
+		conf.Publish = &models.Publish{
+			FilesToCopy: []string{
+				".js",
+				".css",
+				".jpeg",
+				".jpg",
+				".png",
+				".gif",
+			},
+		}
+		changed = true
+	}
+
+	return changed
+}
+
 // ReadConfigurationFile returns config file from filename.
 func ReadConfigurationFile(filename string) (*models.Configuration, error) {
 	conf := models.Configuration{}
@@ -25,6 +44,13 @@ func ReadConfigurationFile(filename string) (*models.Configuration, error) {
 		return nil, eris.Wrap(err, "failed to unmarshal config file")
 	}
 
+	if updateConfig(&conf){
+		err := WriteConfigurationFile(&conf, filename)
+		if err != nil{
+			return nil, eris.Wrap(err, "failed to update config")
+		}
+	}
+
 	return &conf, nil
 }
 
@@ -37,6 +63,16 @@ func CreateConfigurationFile(filename string) error {
 		DateTimeFormat:           "2006-01-02T15:04:05Z07:00",
 		DefaultFileExtension:     "md",
 		Version:                  0,
+		Publish: &models.Publish{
+			FilesToCopy: []string{
+				".js",
+				".css",
+				".jpeg",
+				".jpg",
+				".png",
+				".gif",
+			},
+		},
 		Templates: []models.TemplateFile{
 			{
 				Filename: "default.txt",
