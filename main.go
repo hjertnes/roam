@@ -57,28 +57,28 @@ func errorHandler(err error) {
 }
 
 func getCreateCommand(path string) *create.Create {
-	c, err := create.New(path)
+	c, err := create.New(path, os.Args)
 	errorHandler(err)
 
 	return c
 }
 
 func getClearCommand(path string) *clear.Clear {
-	c, err := clear.New(path)
+	c, err := clear.New(path, os.Args)
 	errorHandler(err)
 
 	return c
 }
 
 func getFindCommand(path string) *find.Find {
-	c, err := find.New(path)
+	c, err := find.New(path, os.Args)
 	errorHandler(err)
 
 	return c
 }
 
 func getTemplateCommand(path string) *template.Template{
-	t, err := template.New(path)
+	t, err := template.New(path, os.Args)
 	errorHandler(err)
 
 	return t
@@ -88,9 +88,9 @@ func main() {
 	path := getPath()
 
 	if len(os.Args) == 1 {
-		help.Run()
+		help.Run(os.Args)
 
-		os.Exit(0)
+		return
 	}
 
 	switch os.Args[1] {
@@ -99,15 +99,15 @@ func main() {
 	case "init":
 		errorHandler(iinit.Run(path))
 	case "publish":
-		errorHandler(publish.Run(path))
+		errorHandler(publish.Run(path, os.Args))
 	case "diagnostic":
-		errorHandler(diagnostic.Run(path))
+		errorHandler(diagnostic.Run(path, os.Args))
 	case "config":
 		errorHandler(configedit.Run(path))
 	case "migrate":
-		errorHandler(migrate.Run(path))
+		errorHandler(migrate.Run(path, os.Args))
 	case "sync":
-		errorHandler(sync.Run(path))
+		errorHandler(sync.Run(path, os.Args))
 	case "find":
 		errorHandler(getFindCommand(path).Run())
 	case "create":
@@ -115,18 +115,18 @@ func main() {
 	case "import":
 		errorHandler(getCreateCommand(path).RunImport())
 	case "report":
-		errorHandler(report.Run(path))
+		errorHandler(report.Run(path, os.Args))
 	case "daily":
 		errorHandler(getCreateCommand(path).Run())
 	case "stats":
-		errorHandler(stats.Run(path))
+		errorHandler(stats.Run(path, os.Args))
 	case "log":
-		errorHandler(synclog.Run(path))
+		errorHandler(synclog.Run(path, os.Args))
 	case "version":
 		version.Run()
 	case "template":
 		errorHandler(getTemplateCommand(path).Run())
 	default:
-		help.Run()
+		help.Run(os.Args)
 	}
 }

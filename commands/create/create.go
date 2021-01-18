@@ -30,13 +30,13 @@ type Create struct {
 
 // Run runs the command and figures out what to do.
 func (c *Create) Run() error {
-	switch len(os.Args) {
+	switch len(c.state.Arguments) {
 	case constants.Two:
 		return c.dailyToday()
 	case constants.Three:
-		return c.daily(os.Args[2])
+		return c.daily(c.state.Arguments[2])
 	default:
-		help.Run()
+		help.Run([]string{})
 
 		return nil
 	}
@@ -44,12 +44,12 @@ func (c *Create) Run() error {
 
 // CreateFile creates a new note.
 func (c *Create) CreateFile() error {
-	if len(os.Args) <= 3 {
-		help.Run()
+	if len(c.state.Arguments) <= 3 {
+		help.Run([]string{})
 		return nil
 	}
 
-	filepath := os.Args[2]
+	filepath := c.state.Arguments[2]
 
 	title, err := textinput.Run("Title")
 	if err != nil {
@@ -89,8 +89,8 @@ func (c *Create) CreateFile() error {
 }
 
 // New is the constructor.
-func New(path string) (*Create, error) {
-	s, err := state.New(path)
+func New(path string, args []string) (*Create, error) {
+	s, err := state.New(path, args)
 	if err != nil {
 		return nil, eris.Wrap(err, "could not create state")
 	}
@@ -110,21 +110,21 @@ func (c *Create) RunImport() error {
 
 	dryRun := false
 
-	for i := range os.Args {
+	for i := range c.state.Arguments {
 		if i <= 1 {
 			continue
 		}
 
-		if os.Args[i] == "--dry" {
+		if c.state.Arguments[i] == "--dry" {
 			dryRun = true
 		} else {
-			file = os.Args[i]
+			file = c.state.Arguments[i]
 		}
 	}
 
 	if file == "" {
-		help.Run()
-		os.Exit(0)
+		help.Run([]string{})
+		return nil
 	}
 
 	err := c.doImport(file, dryRun)

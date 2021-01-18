@@ -3,24 +3,23 @@ package help
 
 import (
 	"fmt"
-	"os"
 	"strings"
 )
 
-func getSubCommand() string {
+func getSubCommand(args []string) string {
 	subCommand := ""
 
-	for i := range os.Args {
+	for i := range args {
 		if i > 1 {
-			if !strings.HasPrefix(os.Args[i], "--") {
-				subCommand = os.Args[i]
+			if !strings.HasPrefix(args[i], "--") {
+				subCommand = args[i]
 
 				break
 			}
 		}
 	}
 
-	if len(os.Args) > 1 && os.Args[1] != "help" {
+	if len(args) > 1 && args[1] != "help" {
 		subCommand = ""
 	}
 
@@ -77,8 +76,8 @@ func contains(key string) bool {
 }
 
 // Run is the entry point.
-func Run() {
-	subCommand := getSubCommand()
+func Run(args []string) {
+	subCommand := getSubCommand(args)
 	if !contains(subCommand) {
 		main()
 	} else {

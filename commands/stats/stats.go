@@ -10,8 +10,8 @@ import (
 )
 
 // Run shows statistics.
-func Run(path string) error {
-	s, err := state.New(path)
+func Run(path string, args []string) error {
+	s, err := state.New(path, args)
 	if err != nil {
 		return eris.Wrap(err, "Failed to create state")
 	}

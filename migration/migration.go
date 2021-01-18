@@ -87,10 +87,6 @@ CREATE INDEX links_idx ON links (file_fk, link_fk);`)
 	return nil
 }
 
-/*
-
-*/
-
 func (m *Migration) v3() error {
 	_, err := m.conn.Exec(m.ctx, `
 create table sync_history(
@@ -141,6 +137,24 @@ func (m *Migration) getMigrationNumber() (int, error) {
 	}
 
 	return res, nil
+}
+
+func (m *Migration) GetCurrentMigration() (int, error) {
+	e, err := m.checkIfMigrationHistoryExist()
+	if err != nil{
+		return 0, eris.Wrap(err, "failed to check if migration history exists")
+	}
+
+	if !e {
+		return 0, nil
+	}
+
+	migrationNumber, err := m.getMigrationNumber()
+	if err != nil {
+		return 0, eris.Wrap(err, "failed to check migration version")
+	}
+
+	return migrationNumber, nil
 }
 
 // Migrate runs migrations.

@@ -1,4 +1,8 @@
 # Changelog
+## v0.3.1
+- Added an abstraction around os.Args instead of using it directly
+- Replaced most of the uses of os,Exit
+- Added a check that warns if you have pending migrations
 ## v0.3.0
 Just bumped it to v0.3.0 because this .22 version number is dumb
 ## v0.2.22

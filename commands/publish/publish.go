@@ -24,25 +24,22 @@ import (
 )
 
 // Run is the entrypoint.
-func Run(path string) error {
-	to := ""
-	if len(os.Args) > 2 {
-		to = os.Args[2]
-		if to == "--include-private" {
-			to = ""
-		}
-	}
-	excludePrivate := true
-
-	for _, a := range os.Args {
-		if a == "--include-private" {
-			excludePrivate = false
-		}
-	}
-
-	s, err := state.New(path)
+func Run(path string, args []string) error {
+	s, err := state.New(path, args)
 	if err != nil {
 		return eris.Wrap(err, "failed to create state")
+	}
+
+	excludePrivate := true
+
+	to := ""
+
+	for _, a := range s.Arguments {
+		if a == "--include-private" {
+			excludePrivate = false
+		} else {
+			to = a
+		}
 	}
 
 	spinner, err := spinner2.Run("")

@@ -9,8 +9,8 @@ import (
 )
 
 // Run is the entry point.
-func Run(path string) error {
-	s, err := state.NewWithoutStatusCheck(path)
+func Run(path string, args []string) error {
+	s, err := state.NewWithoutStatusCheck(path, args)
 	if err != nil {
 		return eris.Wrap(err, "Failed to create state")
 	}

@@ -19,13 +19,13 @@ type Clear struct {
 
 // Run runs the main command and figures out what to do.
 func (c *Clear) Run() error {
-	if len(os.Args) == constants.Two {
-		help.Run()
+	if len(c.state.Arguments) == constants.Two {
+		help.Run([]string{})
 
-		os.Exit(0)
+		return nil
 	}
 
-	switch os.Args[2] {
+	switch c.state.Arguments[2] {
 	case "config":
 		err := os.RemoveAll(fmt.Sprintf("%s/.config", c.state.Path))
 		if err != nil {
@@ -37,26 +37,26 @@ func (c *Clear) Run() error {
 			return eris.Wrap(err, "failed to re-create config")
 		}
 
-		os.Exit(0)
+		return nil
 	case "database":
 		err := c.state.Dal.Clear()
 		if err != nil {
 			return eris.Wrap(err, "failed to clear database")
 		}
 
-		os.Exit(0)
+		return nil
 	default:
-		help.Run()
+		help.Run([]string{})
 
-		os.Exit(0)
+		return nil
 	}
 
 	return nil
 }
 
 // New is the constructor.
-func New(path string) (*Clear, error) {
-	s, err := state.New(path)
+func New(path string, args []string) (*Clear, error) {
+	s, err := state.New(path, args)
 	if err != nil {
 		return nil, eris.Wrap(err, "could not create state")
 	}

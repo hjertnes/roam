@@ -24,26 +24,26 @@ type Template struct {
 }
 
 // New is the constructor.
-func New(path string) (*Template, error) {
-	s, err := state.New(path)
+func New(path string, args []string) (*Template, error) {
+	s, err := state.New(path, args)
 	if err != nil {
 		return nil, eris.Wrap(err, "Failed to create state")
 	}
 
 	f := &Template{
-		state:         s,
+		state: s,
 	}
 
 	return f, nil
 }
 
 func (t *Template) Run() error{
-	if len(os.Args) < 3{
-		help.Run()
+	if len(t.state.Arguments) < 3{
+		help.Run([]string{})
 		return nil
 	}
 
-	switch os.Args[2] {
+	switch t.state.Arguments[2] {
 	case "add":
 	err := t.Add()
 		if err != nil{
@@ -65,14 +65,10 @@ func (t *Template) Run() error{
 			return eris.Wrap(err, "failed to delete")
 		}
 	default:
-		help.Run()
+		help.Run([]string{})
 	}
 
 	return nil
-
-	return nil
-
-
 }
 
 func (t *Template) List() error{

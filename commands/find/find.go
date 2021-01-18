@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/ericaro/frontmatter"
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -37,8 +36,8 @@ const edit = "configedit"
 const view = "view"
 
 // New is the constructor.
-func New(path string) (*Find, error) {
-	s, err := state.New(path)
+func New(path string, args []string) (*Find, error) {
+	s, err := state.New(path, args)
 	if err != nil {
 		return nil, eris.Wrap(err, "Failed to create state")
 	}
@@ -49,20 +48,20 @@ func New(path string) (*Find, error) {
 		linksFlag:     false,
 	}
 
-	if len(os.Args) == 2 || strings.HasPrefix(os.Args[2], "--") {
+	if len(s.Arguments) == 2 || strings.HasPrefix(s.Arguments[2], "--") {
 		f.subcommand = query
 	} else {
-		subCommand := os.Args[2]
+		subCommand := s.Arguments[2]
 
 		if subCommand == query || subCommand == edit || subCommand == view {
 			f.subcommand = subCommand
 		} else {
-			help.Run()
-			os.Exit(0)
+			help.Run(args)
+			return nil, nil
 		}
 	}
 
-	for _, arg := range os.Args {
+	for _, arg := range s.Arguments {
 		if arg == "--backlinks" {
 			f.backlinksFlag = true
 		}

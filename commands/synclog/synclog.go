@@ -6,22 +6,21 @@ import (
 	"github.com/hjertnes/roam/state"
 	"github.com/hjertnes/roam/utils"
 	"github.com/rotisserie/eris"
-	"os"
 	"strings"
 )
 
-func Run(path string) error{
-	s, err := state.New(path)
+func Run(path string, args []string) error{
+	s, err := state.New(path, args)
 	if err != nil {
 		return eris.Wrap(err, "Failed to create state")
 	}
 
-	if len(os.Args) == 2{
-		help.Run()
+	if len(s.Arguments) == 2{
+		help.Run([]string{})
 		return nil
 	}
 
-	if os.Args[2] == "clear"{
+	if s.Arguments[2] == "clear"{
 		err = s.Dal.ClearLog()
 		if err != nil{
 			return eris.Wrap(err, "failed to clear log")
@@ -29,7 +28,7 @@ func Run(path string) error{
 		return nil
 	}
 
-	if os.Args[2] == "list"{
+	if s.Arguments[2] == "list"{
 		logs, err := s.Dal.GetLog()
 		if err != nil{
 			return eris.Wrap(err, "failed to get log")
@@ -52,6 +51,6 @@ func Run(path string) error{
 		return nil
 	}
 
-	help.Run()
+	help.Run([]string{})
 	return nil
 }

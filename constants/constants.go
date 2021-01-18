@@ -4,7 +4,9 @@ package constants
 import "regexp"
 
 // Version is the version of roam.
-const Version = "0.3.0"
+const Version = "0.3.1"
+
+const LastMigration = 3
 
 // FolderPermission is the file system permission used when creating new folders.
 const FolderPermission = 0700

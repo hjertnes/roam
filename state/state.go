@@ -4,7 +4,9 @@ package state
 import (
 	"context"
 	"fmt"
+	"github.com/hjertnes/roam/constants"
 	"github.com/hjertnes/roam/errs"
+	"github.com/hjertnes/roam/migration"
 
 	"github.com/hjertnes/roam/configuration"
 	dal2 "github.com/hjertnes/roam/dal"
@@ -20,18 +22,21 @@ type State struct {
 	Ctx  context.Context
 	Conn *pgxpool.Pool
 	Dal  dal2.Dal
+	Arguments []string
 }
 
 
 // New is the constructor.
 
-func NewWithoutStatusCheck(path string) (*State, error) {
-	return _new(false, path)
+func NewWithoutStatusCheck(path string, args []string) (*State, error) {
+	return constructor(false, path, args)
 }
-func New(path string) (*State, error) {
-	return _new(true, path)
+func New(path string, args []string) (*State, error) {
+	return constructor(true, path, args)
 }
-func _new(check bool, path string) (*State, error) {
+
+
+func constructor(check bool, path string, args []string) (*State, error) {
 	conf, err := configuration.ReadConfigurationFile(fmt.Sprintf("%s/.config/config.yaml", path))
 	if err != nil {
 		return nil, eris.Wrap(err, "failed to get config")
@@ -58,6 +63,16 @@ func _new(check bool, path string) (*State, error) {
 		} else if !s{
 			fmt.Println("Last sync failed. Run diagnostic to see why")
 		}
+
+		mig := migration.New(ctx, pxp)
+		n, err := mig.GetCurrentMigration()
+		if err != nil{
+			return nil, eris.Wrap(err, "failed to get migration version")
+		}
+
+		if n != constants.LastMigration{
+			fmt.Println("You database are outdated: run roam migrate to update it")
+		}
 	}
 
 	return &State{
@@ -66,5 +81,6 @@ func _new(check bool, path string) (*State, error) {
 		Ctx:  ctx,
 		Path: path,
 		Dal:  dal,
+		Arguments: args,
 	}, nil
 }
