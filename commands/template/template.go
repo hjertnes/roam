@@ -129,7 +129,7 @@ func (t *Template) Add() error{
 	return nil
 }
 
-func (t *Template) Edit() error{
+func (t *Template) getChoice()(*models.Choice, error){
 	out := make([]models.Choice, 0)
 
 	templates := t.state.Conf.Templates
@@ -143,7 +143,16 @@ func (t *Template) Edit() error{
 
 	choice, err := selectinput.Run(out, "Select file")
 	if err != nil{
-		return eris.Wrap(err, "failed to select file")
+		return nil, eris.Wrap(err, "failed to select file")
+	}
+
+	return choice, nil
+}
+
+func (t *Template) Edit() error{
+	choice, err := t.getChoice()
+	if err != nil{
+		return eris.Wrap(err, "failed to get choice")
 	}
 
 	editor := utils.GetEditor()
@@ -159,21 +168,12 @@ func (t *Template) Edit() error{
 }
 
 func (t *Template) Delete() error{
-	out := make([]models.Choice, 0)
+	choice, err := t.getChoice()
+	if err != nil{
+		return eris.Wrap(err, "failed to get choice")
+	}
 
 	templates := t.state.Conf.Templates
-
-	for i := range templates {
-		out = append(out, models.Choice{
-			Title: t.state.Conf.Templates[i].Title,
-			Value: t.state.Conf.Templates[i].Filename,
-		})
-	}
-
-	choice, err := selectinput.Run(out, "Select file")
-	if err != nil{
-		return eris.Wrap(err, "failed to select file")
-	}
 
 	templates = make([]models.TemplateFile, 0)
 	for _, i := range t.state.Conf.Templates {

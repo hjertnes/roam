@@ -4,7 +4,7 @@ package constants
 import "regexp"
 
 // Version is the version of roam.
-const Version = "0.3.1"
+const Version = "0.3.2"
 
 const LastMigration = 3
 

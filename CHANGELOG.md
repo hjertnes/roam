@@ -1,4 +1,6 @@
 # Changelog
+## v0.3.2
+- Cleaned up the template module a little
 ## v0.3.1
 - Added an abstraction around os.Args instead of using it directly
 - Replaced most of the uses of os,Exit
