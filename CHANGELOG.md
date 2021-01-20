@@ -1,4 +1,6 @@
 # Changelog
+## v0.3.4
+- Changed reports to be a proper type
 ## v0.3.3
 - Re-written sync to not be a giant function
 ## v0.3.2

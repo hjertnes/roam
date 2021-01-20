@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/hjertnes/roam/commands/report"
 	"github.com/hjertnes/roam/commands/synclog"
 	"github.com/hjertnes/roam/commands/template"
 	"github.com/hjertnes/roam/errs"
@@ -12,15 +13,14 @@ import (
 	"strings"
 
 	"github.com/hjertnes/roam/commands/clear"
+	"github.com/hjertnes/roam/commands/configedit"
 	"github.com/hjertnes/roam/commands/create"
 	"github.com/hjertnes/roam/commands/diagnostic"
-	"github.com/hjertnes/roam/commands/configedit"
 	"github.com/hjertnes/roam/commands/find"
 	"github.com/hjertnes/roam/commands/help"
 	iinit "github.com/hjertnes/roam/commands/init"
 	"github.com/hjertnes/roam/commands/migrate"
 	"github.com/hjertnes/roam/commands/publish"
-	"github.com/hjertnes/roam/commands/report"
 	"github.com/hjertnes/roam/commands/stats"
 	"github.com/hjertnes/roam/commands/sync"
 	"github.com/hjertnes/roam/commands/version"
@@ -91,6 +91,13 @@ func getSyncCommand(path string) *sync.Sync{
 	return t
 }
 
+func getReportCommand(path string) *report.Report{
+	t, err := report.New(path, os.Args)
+	errorHandler(err)
+
+	return t
+}
+
 func main() {
 	path := getPath()
 
@@ -122,7 +129,7 @@ func main() {
 	case "import":
 		errorHandler(getCreateCommand(path).RunImport())
 	case "report":
-		errorHandler(report.Run(path, os.Args))
+		errorHandler(getReportCommand(path).Run())
 	case "daily":
 		errorHandler(getCreateCommand(path).Run())
 	case "stats":

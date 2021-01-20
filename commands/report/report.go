@@ -11,13 +11,23 @@ import (
 	"strings"
 )
 
-// Run lists files and their links.
-func Run(path string, args []string) error {
+type Report struct {
+	state *state.State
+}
+
+func New(path string, args []string) (*Report, error) {
 	s, err := state.New(path, args)
 	if err != nil {
-		return eris.Wrap(err, "Failed to create state")
+		return nil, eris.Wrap(err, "could not create state")
 	}
 
+	return &Report{
+		state: s,
+	}, nil
+}
+
+// Run lists files and their links.
+func (r *Report) Run() error {
 	spinner, err := spinner2.Run("")
 	if err != nil {
 		return eris.Wrap(err, "failed to create spinner")
@@ -28,7 +38,7 @@ func Run(path string, args []string) error {
 		return eris.Wrap(err, "failed to start spinner")
 	}
 
-	files, err := s.Dal.GetFiles()
+	files, err := r.state.Dal.GetFiles()
 	if err != nil {
 		return eris.Wrap(err, "failed to get list of files")
 	}
@@ -36,7 +46,7 @@ func Run(path string, args []string) error {
 	output := make([]string, 0)
 
 	for i := range files {
-		output, err = buildReport(s, &files[i], output)
+		output, err = r.buildReport(&files[i], output)
 
 		if err != nil {
 			return eris.Wrap(err, "failed to build report")
@@ -51,15 +61,15 @@ func Run(path string, args []string) error {
 	return nil
 }
 
-func buildReport(s *state.State, file *models.File, output []string) ([]string, error) {
+func (r *Report) buildReport(file *models.File, output []string) ([]string, error) {
 	output = append(output, fmt.Sprintf("# %s", file.Path))
 
-	links, err := s.Dal.GetLinks(file.ID, true)
+	links, err := r.state.Dal.GetLinks(file.ID, true)
 	if err != nil {
 		return output, eris.Wrap(err, "failed to get list of links")
 	}
 
-	backlinks, err := s.Dal.GetBacklinks(file.ID, true)
+	backlinks, err := r.state.Dal.GetBacklinks(file.ID, true)
 	if err != nil {
 		return output, eris.Wrap(err, "failed to get list of backlinks")
 	}

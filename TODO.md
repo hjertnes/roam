@@ -2,15 +2,11 @@
 I feel more and more like I want to replace org-roam with something of my own
 
 ## Upcoming versions
-### v 0.3.4
-#### report
-- turn it into a proper type
 ### v 0.3.5
 #### publish
 - turn it into a proper type
 - too long
 - A mess
-- Strip out links that are private if it makes sense
 ### v 0.3.6
 #### create
 - turn into a proper type
