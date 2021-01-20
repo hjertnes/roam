@@ -1,4 +1,6 @@
 # Changelog
+## v0.3.5
+- Split help into multiple files
 ## v0.3.4
 - Changed reports to be a proper type
 ## v0.3.3

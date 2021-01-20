@@ -1,0 +1,35 @@
+package help
+
+import "fmt"
+
+func main() {
+	fmt.Println("roam is a command line tool kind of like https://roamresearch.com/ and https://www.orgroam.com/")
+	fmt.Println("A lot of the same concepts, like links and backlinks. But cli based instead of web or emacs")
+	fmt.Println("")
+	fmt.Println("Usage:")
+	fmt.Println("  roam [command]")
+	fmt.Println("")
+	fmt.Println("Available commands:")
+	fmt.Println("  create\tCreates a new file")
+	fmt.Println("  daily\tCreates or opens a daily note file")
+	fmt.Println("  import\tBulk import from a single file")
+	fmt.Println("  diagnostic\tChecks your note collection for errors or other problems")
+	fmt.Println("  config\t\tEasy access to configuration file")
+	fmt.Println("  find\t\tQuery your roam database")
+	fmt.Println("  help\t\tHelp like this one")
+	fmt.Println("  init\t\tSets up initial configuration")
+	fmt.Println("  migrate\tMakes sure your database structure is up to date")
+	fmt.Println("  publish\tBuilds a HTML website version of your roam")
+	fmt.Println("  report\tPrints all your notes links and backlinks")
+	fmt.Println("  stats\t\tPrints simple statistics")
+	fmt.Println("  sync\t\tWrites a cache of your roam into a postgres database used by search and others")
+	fmt.Println("  version\tprints current version number")
+	fmt.Println("  remove\tused to remove stuff")
+	fmt.Println("  log\t\tused to manage the sync log")
+	fmt.Println("  template\tused to manage templates")
+	fmt.Println()
+	fmt.Println("Use roam help [command] for more information about a specific command")
+	fmt.Println()
+	fmt.Println("All paths are relative to your roam dir, unless noted as full paths")
+	fmt.Println()
+}
