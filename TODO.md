@@ -2,10 +2,6 @@
 I feel more and more like I want to replace org-roam with something of my own
 
 ## Upcoming versions
-### v 0.3.3
-#### sync
-- turn it into a proper type
-- the main function is way too long
 ### v 0.3.4
 #### report
 - turn it into a proper type

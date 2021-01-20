@@ -11,4 +11,5 @@ var (
 	// ErrNoValue is the error for when no value is found.
 	ErrNoValue = eris.New("no value")
 	ErrNever = eris.New("never ran")
+	ErrTooMany = eris.New("too many matches")
 )

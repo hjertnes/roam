@@ -1,4 +1,6 @@
 # Changelog
+## v0.3.3
+- Re-written sync to not be a giant function
 ## v0.3.2
 - Cleaned up the template module a little
 ## v0.3.1

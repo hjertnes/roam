@@ -84,6 +84,13 @@ func getTemplateCommand(path string) *template.Template{
 	return t
 }
 
+func getSyncCommand(path string) *sync.Sync{
+	t, err := sync.New(path, os.Args)
+	errorHandler(err)
+
+	return t
+}
+
 func main() {
 	path := getPath()
 
@@ -107,7 +114,7 @@ func main() {
 	case "migrate":
 		errorHandler(migrate.Run(path, os.Args))
 	case "sync":
-		errorHandler(sync.Run(path, os.Args))
+		errorHandler(getSyncCommand(path).Run())
 	case "find":
 		errorHandler(getFindCommand(path).Run())
 	case "create":
