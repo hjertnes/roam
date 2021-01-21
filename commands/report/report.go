@@ -46,7 +46,7 @@ func (r *Report) Run() error {
 	output := make([]string, 0)
 
 	for i := range files {
-		output, err = r.buildReport(&files[i], output)
+		err = r.buildReport(&files[i], &output)
 
 		if err != nil {
 			return eris.Wrap(err, "failed to build report")
@@ -61,38 +61,36 @@ func (r *Report) Run() error {
 	return nil
 }
 
-func (r *Report) buildReport(file *models.File, output []string) ([]string, error) {
-	output = append(output, fmt.Sprintf("# %s", file.Path))
+func (r *Report) buildReport(file *models.File, output *[]string) error {
+	*output = append(*output, fmt.Sprintf("# %s", file.Path))
 
 	links, err := r.state.Dal.GetLinks(file.ID, true)
 	if err != nil {
-		return output, eris.Wrap(err, "failed to get list of links")
+		return eris.Wrap(err, "failed to get list of links")
 	}
 
 	backlinks, err := r.state.Dal.GetBacklinks(file.ID, true)
 	if err != nil {
-		return output, eris.Wrap(err, "failed to get list of backlinks")
+		return eris.Wrap(err, "failed to get list of backlinks")
 	}
 
-	output = append(output, "## Links")
+	*output = append(*output, "## Links")
 
-	output = printListOfLinks(output, links)
+	printListOfLinks(output, links)
 
-	output = append(output, "## Backlinks")
+	*output = append(*output, "## Backlinks")
 
-	output = printListOfLinks(output, backlinks)
+	printListOfLinks(output, backlinks)
 
-	return output, nil
+	return nil
 }
 
-func printListOfLinks(output []string, links []models.File) []string {
+func printListOfLinks(output *[]string, links []models.File) {
 	if len(links) == 0 {
-		output = append(output, "No links")
+		*output = append(*output, "No links")
 	}
 
 	for _, link := range links {
-		output = append(output, fmt.Sprintf("- <%s>\n", link.Path))
+		*output = append(*output, fmt.Sprintf("- <%s>\n", link.Path))
 	}
-
-	return output
 }

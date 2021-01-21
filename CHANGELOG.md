@@ -1,4 +1,9 @@
 # Changelog
+## v0.3.6
+- Make a proper type out of diagnostics
+- Split it into not being a huge function
+- Moved the command builders in main to a sep. file. 
+- And renamed them to "buildX" from "getX". 
 ## v0.3.5
 - Split help into multiple files
 ## v0.3.4

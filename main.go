@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hjertnes/roam/commands/report"
 	"github.com/hjertnes/roam/commands/synclog"
-	"github.com/hjertnes/roam/commands/template"
 	"github.com/hjertnes/roam/errs"
 	utilslib "github.com/hjertnes/utils"
 	"github.com/rotisserie/eris"
@@ -12,17 +10,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hjertnes/roam/commands/clear"
 	"github.com/hjertnes/roam/commands/configedit"
-	"github.com/hjertnes/roam/commands/create"
-	"github.com/hjertnes/roam/commands/diagnostic"
-	"github.com/hjertnes/roam/commands/find"
 	"github.com/hjertnes/roam/commands/help"
 	iinit "github.com/hjertnes/roam/commands/init"
 	"github.com/hjertnes/roam/commands/migrate"
 	"github.com/hjertnes/roam/commands/publish"
 	"github.com/hjertnes/roam/commands/stats"
-	"github.com/hjertnes/roam/commands/sync"
 	"github.com/hjertnes/roam/commands/version"
 )
 
@@ -56,48 +49,6 @@ func errorHandler(err error) {
 	}
 }
 
-func getCreateCommand(path string) *create.Create {
-	c, err := create.New(path, os.Args)
-	errorHandler(err)
-
-	return c
-}
-
-func getClearCommand(path string) *clear.Clear {
-	c, err := clear.New(path, os.Args)
-	errorHandler(err)
-
-	return c
-}
-
-func getFindCommand(path string) *find.Find {
-	c, err := find.New(path, os.Args)
-	errorHandler(err)
-
-	return c
-}
-
-func getTemplateCommand(path string) *template.Template{
-	t, err := template.New(path, os.Args)
-	errorHandler(err)
-
-	return t
-}
-
-func getSyncCommand(path string) *sync.Sync{
-	t, err := sync.New(path, os.Args)
-	errorHandler(err)
-
-	return t
-}
-
-func getReportCommand(path string) *report.Report{
-	t, err := report.New(path, os.Args)
-	errorHandler(err)
-
-	return t
-}
-
 func main() {
 	path := getPath()
 
@@ -109,29 +60,29 @@ func main() {
 
 	switch os.Args[1] {
 	case "clear":
-		errorHandler(getClearCommand(path).Run())
+		errorHandler(buildClearCommand(path).Run())
 	case "init":
 		errorHandler(iinit.Run(path))
 	case "publish":
 		errorHandler(publish.Run(path, os.Args))
 	case "diagnostic":
-		errorHandler(diagnostic.Run(path, os.Args))
+		errorHandler(buildDiagnosticCommand(path).Run())
 	case "config":
 		errorHandler(configedit.Run(path))
 	case "migrate":
 		errorHandler(migrate.Run(path, os.Args))
 	case "sync":
-		errorHandler(getSyncCommand(path).Run())
+		errorHandler(buildSyncCommand(path).Run())
 	case "find":
-		errorHandler(getFindCommand(path).Run())
+		errorHandler(buildFindCommand(path).Run())
 	case "create":
-		errorHandler(getCreateCommand(path).CreateFile())
+		errorHandler(buildCreateCommand(path).CreateFile())
 	case "import":
-		errorHandler(getCreateCommand(path).RunImport())
+		errorHandler(buildCreateCommand(path).RunImport())
 	case "report":
-		errorHandler(getReportCommand(path).Run())
+		errorHandler(buildReportCommand(path).Run())
 	case "daily":
-		errorHandler(getCreateCommand(path).Run())
+		errorHandler(buildCreateCommand(path).Run())
 	case "stats":
 		errorHandler(stats.Run(path, os.Args))
 	case "log":
@@ -139,7 +90,7 @@ func main() {
 	case "version":
 		version.Run()
 	case "template":
-		errorHandler(getTemplateCommand(path).Run())
+		errorHandler(buildTemplateCommand(path).Run())
 	default:
 		help.Run(os.Args)
 	}
