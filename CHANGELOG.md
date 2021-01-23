@@ -1,4 +1,8 @@
 # Changelog
+## v0.3.7
+- Moved the creation of commands to a factory
+- Fixed some crashes 
+- Added handling for a weird case where I returned nil,nil
 ## v0.3.6
 - Make a proper type out of diagnostics
 - Split it into not being a huge function

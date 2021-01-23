@@ -3,6 +3,7 @@ package utils
 
 import (
 	"fmt"
+	"github.com/hjertnes/roam/errs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,6 +14,26 @@ import (
 	"github.com/hjertnes/roam/models"
 	"github.com/rotisserie/eris"
 )
+
+func ErrorHandler(err error) {
+	if err != nil {
+		if eris.Is(err, errs.ErrNotFound) {
+			fmt.Println("No matches to search query")
+
+			os.Exit(0)
+		}
+
+		if eris.Is(err, errs.ErrNoop){
+			os.Exit(0)
+		}
+
+		fmt.Println("Error")
+
+		fmt.Println(eris.ToString(err, true))
+
+		os.Exit(0)
+	}
+}
 
 // GetEditor returns the value of the EDITOR enlivenment variable or a default value if not set.
 func GetEditor() string {

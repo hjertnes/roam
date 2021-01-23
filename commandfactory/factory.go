@@ -1,4 +1,4 @@
-package main
+package commandfactory
 
 import (
 	"github.com/hjertnes/roam/commands/clear"
@@ -8,54 +8,55 @@ import (
 	"github.com/hjertnes/roam/commands/report"
 	"github.com/hjertnes/roam/commands/sync"
 	"github.com/hjertnes/roam/commands/template"
+	"github.com/hjertnes/roam/utils"
 	"os"
 )
 
-func buildCreateCommand(path string) *create.Create {
+func CreateCommand(path string) *create.Create {
 	c, err := create.New(path, os.Args)
-	errorHandler(err)
+	utils.ErrorHandler(err)
 
 	return c
 }
 
-func buildClearCommand(path string) *clear.Clear {
+func ClearCommand(path string) *clear.Clear {
 	c, err := clear.New(path, os.Args)
-	errorHandler(err)
+	utils.ErrorHandler(err)
 
 	return c
 }
 
-func buildFindCommand(path string) *find.Find {
+func FindCommand(path string) *find.Find {
 	c, err := find.New(path, os.Args)
-	errorHandler(err)
+	utils.ErrorHandler(err)
 
 	return c
 }
 
-func buildTemplateCommand(path string) *template.Template{
+func TemplateCommand(path string) *template.Template{
 	t, err := template.New(path, os.Args)
-	errorHandler(err)
+	utils.ErrorHandler(err)
 
 	return t
 }
 
-func buildSyncCommand(path string) *sync.Sync{
+func SyncCommand(path string) *sync.Sync{
 	t, err := sync.New(path, os.Args)
-	errorHandler(err)
+	utils.ErrorHandler(err)
 
 	return t
 }
 
-func buildReportCommand(path string) *report.Report{
+func ReportCommand(path string) *report.Report{
 	t, err := report.New(path, os.Args)
-	errorHandler(err)
+	utils.ErrorHandler(err)
 
 	return t
 }
 
-func buildDiagnosticCommand(path string) *diagnostic.Diagnostic{
+func DiagnosticCommand(path string) *diagnostic.Diagnostic{
 	t, err := diagnostic.New(path, os.Args)
-	errorHandler(err)
+	utils.ErrorHandler(err)
 
 	return t
 }

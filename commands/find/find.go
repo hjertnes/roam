@@ -31,7 +31,7 @@ type Find struct {
 
 const query = "query"
 
-const edit = "configedit"
+const edit = "edit"
 
 const view = "view"
 
@@ -57,7 +57,7 @@ func New(path string, args []string) (*Find, error) {
 			f.subcommand = subCommand
 		} else {
 			help.Run(args)
-			return nil, nil
+			return nil, errs.ErrNoop
 		}
 	}
 
@@ -122,6 +122,7 @@ func (f *Find) selectFile(result []models.File) (*models.File, error) {
 
 // Run is the entrypoint.
 func (f *Find) Run() error {
+
 	if f.linksFlag && f.backlinksFlag{
 		fmt.Println("You can't use both backlinks and links at the same time")
 		return nil
@@ -164,7 +165,7 @@ func (f *Find) Run() error {
 	var choice *models.File
 
 	if len(result) == constants.Zero {
-		fmt.Println("No files matches your query")
+		return nil
 	} else if len(result) == 1 {
 		choice = &result[0]
 	} else {
@@ -226,7 +227,7 @@ func (f *Find) Run() error {
 	if f.subcommand == edit {
 		err = editNote(choice.Path)
 		if err != nil {
-			return eris.Wrap(err, "failed to configedit file")
+			return eris.Wrap(err, "failed to edit file")
 		}
 
 		return nil
@@ -235,7 +236,7 @@ func (f *Find) Run() error {
 	if f.subcommand == view {
 		err = viewNote(choice.Path)
 		if err != nil {
-			return eris.Wrap(err, "failed to configedit file")
+			return eris.Wrap(err, "failed to view file")
 		}
 
 		return nil

@@ -29,7 +29,7 @@ type Create struct {
 }
 
 // Run runs the command and figures out what to do.
-func (c *Create) Run() error {
+func (c *Create) RunDaily() error {
 	switch len(c.state.Arguments) {
 	case constants.Two:
 		return c.dailyToday()

@@ -12,4 +12,5 @@ var (
 	ErrNoValue = eris.New("no value")
 	ErrNever = eris.New("never ran")
 	ErrTooMany = eris.New("too many matches")
+	ErrNoop = eris.New("noop")
 )

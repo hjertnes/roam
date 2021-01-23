@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"github.com/hjertnes/roam/commandfactory"
 	"github.com/hjertnes/roam/commands/synclog"
-	"github.com/hjertnes/roam/errs"
+	"github.com/hjertnes/roam/utils"
 	utilslib "github.com/hjertnes/utils"
-	"github.com/rotisserie/eris"
+
 	"io/ioutil"
 	"os"
 	"strings"
@@ -19,6 +19,8 @@ import (
 	"github.com/hjertnes/roam/commands/version"
 )
 
+
+
 func getPath() string {
 	if utilslib.FileExist("./.roam") {
 		data, err := ioutil.ReadFile("./.roam")
@@ -28,25 +30,11 @@ func getPath() string {
 	}
 
 	path, isSet := os.LookupEnv("ROAM")
-	if !isSet {
+	if !isSet{
 		return utilslib.ExpandTilde("~/txt/roam")
 	}
 
 	return utilslib.ExpandTilde(path)
-}
-
-func errorHandler(err error) {
-	if err != nil {
-		if eris.Is(err, errs.ErrNotFound) {
-			fmt.Println("No matches to search query")
-		}
-
-		fmt.Println("Error")
-
-		fmt.Println(eris.ToString(err, true))
-
-		os.Exit(0)
-	}
 }
 
 func main() {
@@ -60,37 +48,38 @@ func main() {
 
 	switch os.Args[1] {
 	case "clear":
-		errorHandler(buildClearCommand(path).Run())
+		utils.ErrorHandler(commandfactory.ClearCommand(path).Run())
 	case "init":
-		errorHandler(iinit.Run(path))
+		utils.ErrorHandler(iinit.Run(path))
 	case "publish":
-		errorHandler(publish.Run(path, os.Args))
+		utils.ErrorHandler(publish.Run(path, os.Args))
 	case "diagnostic":
-		errorHandler(buildDiagnosticCommand(path).Run())
+		utils.ErrorHandler(commandfactory.DiagnosticCommand(path).Run())
 	case "config":
-		errorHandler(configedit.Run(path))
+		utils.ErrorHandler(configedit.Run(path))
 	case "migrate":
-		errorHandler(migrate.Run(path, os.Args))
+		utils.ErrorHandler(migrate.Run(path, os.Args))
 	case "sync":
-		errorHandler(buildSyncCommand(path).Run())
+		utils.ErrorHandler(commandfactory.SyncCommand(path).Run())
 	case "find":
-		errorHandler(buildFindCommand(path).Run())
+		utils.ErrorHandler(commandfactory.FindCommand(path).Run())
 	case "create":
-		errorHandler(buildCreateCommand(path).CreateFile())
+		utils.ErrorHandler(commandfactory.CreateCommand(path).CreateFile())
 	case "import":
-		errorHandler(buildCreateCommand(path).RunImport())
-	case "report":
-		errorHandler(buildReportCommand(path).Run())
+		utils.ErrorHandler(commandfactory.CreateCommand(path).RunImport())
 	case "daily":
-		errorHandler(buildCreateCommand(path).Run())
+		utils.ErrorHandler(commandfactory.CreateCommand(path).RunDaily())
+	case "report":
+		utils.ErrorHandler(commandfactory.ReportCommand(path).Run())
+
 	case "stats":
-		errorHandler(stats.Run(path, os.Args))
+		utils.ErrorHandler(stats.Run(path, os.Args))
 	case "log":
-		errorHandler(synclog.Run(path, os.Args))
+		utils.ErrorHandler(synclog.Run(path, os.Args))
 	case "version":
 		version.Run()
 	case "template":
-		errorHandler(buildTemplateCommand(path).Run())
+		utils.ErrorHandler(commandfactory.TemplateCommand(path).Run())
 	default:
 		help.Run(os.Args)
 	}
