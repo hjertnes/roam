@@ -1,4 +1,6 @@
 # Changelog
+## v0.3.8
+- Added a warning if more than 5 min since last sync
 ## v0.3.7
 - Moved the creation of commands to a factory
 - Fixed some crashes 

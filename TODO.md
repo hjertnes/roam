@@ -18,7 +18,7 @@ I feel more and more like I want to replace org-roam with something of my own
 #### find
 - proper type
 - split up
-### Later
+### Late
 #### Migration
 - Use file embeds for sql
 

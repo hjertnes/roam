@@ -7,6 +7,7 @@ import (
 	"github.com/hjertnes/roam/constants"
 	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/migration"
+	"time"
 
 	"github.com/hjertnes/roam/configuration"
 	dal2 "github.com/hjertnes/roam/dal"
@@ -52,7 +53,7 @@ func constructor(check bool, path string, args []string) (*State, error) {
 	dal := dal2.New(ctx, pxp, path)
 
 	if check{
-		s, err := dal.WasLastSyncSuccessful()
+		s, t, err := dal.WasLastSyncSuccessful()
 		if err != nil {
 			if eris.Is(err, errs.ErrNever){
 				fmt.Println("Sync have never been done")
@@ -62,6 +63,10 @@ func constructor(check bool, path string, args []string) (*State, error) {
 
 		} else if !s{
 			fmt.Println("Last sync failed. Run diagnostic to see why")
+		}
+
+		if time.Now().UTC().Unix() - t.UTC().Unix() > 300{
+			fmt.Println("More than 5 minutes since last sync")
 		}
 
 		mig := migration.New(ctx, pxp)

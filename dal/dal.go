@@ -7,6 +7,7 @@ import (
 	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/utils/pathutils"
 	"strings"
+	"time"
 
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/hjertnes/roam/models"
@@ -36,7 +37,7 @@ type Dal interface {
 	Clear() error
 	AddLog(failure bool) error
 	GetLog() ([]models.Log, error)
-	WasLastSyncSuccessful() (bool, error)
+	WasLastSyncSuccessful() (bool, time.Time, error)
 	ClearLog() error
 
 }
@@ -248,26 +249,26 @@ func (d *dal) GetLog() ([]models.Log, error){
 	return result, nil
 }
 
-func (d *dal) WasLastSyncSuccessful() (bool, error){
+func (d *dal) WasLastSyncSuccessful() (bool, time.Time, error){
 	result := make([]models.Log, 0)
 
 	res, err := d.conn.Query(d.ctx, `SELECT ID, created_at, failure from sync_history order by created_at desc limit 1`)
 	if err != nil {
-		return false, eris.Wrap(err, "failed to run list query")
+		return false, time.Time{}, eris.Wrap(err, "failed to run list query")
 	}
 
 
 
 	err = pgxscan.ScanAll(&result, res)
 	if err != nil {
-		return false, eris.Wrap(err, "failed to scan list query")
+		return false, time.Time{}, eris.Wrap(err, "failed to scan list query")
 	}
 
 	if len(result) == 0{
-		return false, eris.Wrap(errs.ErrNever, "never ran")
+		return false, time.Time{}, eris.Wrap(errs.ErrNever, "never ran")
 	}
 
-	return !result[0].Failure, nil
+	return !result[0].Failure, result[0].Timestamp, nil
 }
 
 func (d *dal) ClearLog() error{
