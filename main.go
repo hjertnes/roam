@@ -64,14 +64,13 @@ func main() {
 	case "find":
 		utils.ErrorHandler(commandfactory.FindCommand(path).Run())
 	case "create":
-		utils.ErrorHandler(commandfactory.CreateCommand(path).CreateFile())
+		utils.ErrorHandler(commandfactory.CreateFileCommand(path).Run())
 	case "import":
-		utils.ErrorHandler(commandfactory.CreateCommand(path).RunImport())
+		utils.ErrorHandler(commandfactory.ImportCommand(path).Run())
 	case "daily":
-		utils.ErrorHandler(commandfactory.CreateCommand(path).RunDaily())
+		utils.ErrorHandler(commandfactory.DailyCommand(path).Run())
 	case "report":
 		utils.ErrorHandler(commandfactory.ReportCommand(path).Run())
-
 	case "stats":
 		utils.ErrorHandler(stats.Run(path, os.Args))
 	case "log":

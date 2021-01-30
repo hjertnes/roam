@@ -1,8 +1,10 @@
 package commandfactory
 
 import (
+	"github.com/hjertnes/roam/commands/bulkimport"
 	"github.com/hjertnes/roam/commands/clear"
-	"github.com/hjertnes/roam/commands/create"
+	"github.com/hjertnes/roam/commands/createfile"
+	"github.com/hjertnes/roam/commands/daily"
 	"github.com/hjertnes/roam/commands/diagnostic"
 	"github.com/hjertnes/roam/commands/find"
 	"github.com/hjertnes/roam/commands/report"
@@ -12,8 +14,22 @@ import (
 	"os"
 )
 
-func CreateCommand(path string) *create.Create {
-	c, err := create.New(path, os.Args)
+func CreateFileCommand(path string) *createfile.CreateFile {
+	c, err := createfile.New(path, os.Args)
+	utils.ErrorHandler(err)
+
+	return c
+}
+
+func ImportCommand(path string) *bulkimport.Import {
+	c, err := bulkimport.New(path, os.Args)
+	utils.ErrorHandler(err)
+
+	return c
+}
+
+func DailyCommand(path string) *daily.Daily {
+	c, err := daily.New(path, os.Args)
 	utils.ErrorHandler(err)
 
 	return c
