@@ -4,12 +4,13 @@ package find
 import (
 	"fmt"
 	"github.com/ericaro/frontmatter"
+	"github.com/hjertnes/roam/constants"
+	"github.com/theckman/yacspin"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 
 	"github.com/hjertnes/roam/commands/help"
-	"github.com/hjertnes/roam/constants"
 	"github.com/hjertnes/roam/errs"
 	"github.com/hjertnes/roam/models"
 	"github.com/hjertnes/roam/state"
@@ -119,9 +120,83 @@ func (f *Find) selectFile(result []models.File) (*models.File, error) {
 	return choice, nil
 }
 
+func (f *Find) getLinks(choice *models.File, spinner *yacspin.Spinner) ([]models.File, error){
+	err := spinner.Stop()
+
+	var links []models.File
+
+	err = spinner.Start()
+	if err != nil {
+		return links, eris.Wrap(err, "failed to start spinner")
+	}
+
+	if f.linksFlag {
+		links, err = f.state.Dal.GetLinks(choice.ID, true)
+		if err != nil {
+			return links, eris.Wrap(err, "failed to get links")
+		}
+	}
+
+	if f.backlinksFlag {
+		links, err = f.state.Dal.GetBacklinks(choice.ID, true)
+		if err != nil {
+			return links, eris.Wrap(err, "failed to get links")
+		}
+	}
+
+	err = spinner.Stop()
+	if err != nil {
+		return links, eris.Wrap(err, "failed to stop spinner")
+	}
+
+	return links, errs.ErrNoValue
+}
+
+func (f *Find) getChoice(result []models.File, spinner *yacspin.Spinner) (*models.File, error){
+	if len(result) == constants.Zero {
+		return nil, errs.ErrNoValue
+	} else if len(result) == 1 {
+		return &result[0], nil
+	} else {
+		choice, err := f.selectFile(result)
+		if err != nil {
+			return nil, eris.Wrap(err, "failed to select file")
+		}
+
+		links, err := f.getLinks(choice, spinner)
+		if err != nil{
+			return nil, eris.Wrap(err, "failed to get links")
+		}
+
+		if f.subcommand == query {
+			err := f.query(result)
+			if err != nil{
+				return nil, eris.Wrap(err, "failed to show query result")
+			}
+
+			return nil, errs.ErrNoValue
+		}
+
+		if (f.linksFlag || f.backlinksFlag) && (f.subcommand == edit || f.subcommand == view) {
+			switch len(links) {
+			case 0:
+				fmt.Println("No files match your query")
+			case 1:
+				choice = &links[0]
+			default:
+				choice, err = f.selectFile(links)
+				if err != nil {
+					return nil, eris.Wrap(err, "failed to select file")
+				}
+			}
+		}
+	}
+
+	return nil, errs.ErrNoValue
+}
+
 // Run is the entrypoint.
 func (f *Find) Run() error {
-
 	if f.linksFlag && f.backlinksFlag{
 		fmt.Println("You can't use both backlinks and links at the same time")
 		return nil
@@ -161,70 +236,23 @@ func (f *Find) Run() error {
 		return nil
 	}
 
-	var choice *models.File
-
-	if len(result) == constants.Zero {
-		return nil
-	} else if len(result) == 1 {
-		choice = &result[0]
-	} else {
-		choice, err = f.selectFile(result)
-		if err != nil {
-			return eris.Wrap(err, "failed to select file")
-		}
-
-		var links []models.File
-
-		err = spinner.Start()
-		if err != nil {
-			return eris.Wrap(err, "failed to start spinner")
-		}
-
-		if f.linksFlag {
-			links, err = f.state.Dal.GetLinks(choice.ID, true)
-			if err != nil {
-				return eris.Wrap(err, "failed to get links")
-			}
-		}
-
-		if f.backlinksFlag {
-			links, err = f.state.Dal.GetBacklinks(choice.ID, true)
-			if err != nil {
-				return eris.Wrap(err, "failed to get links")
-			}
-		}
-
-		err = spinner.Stop()
-		if err != nil {
-			return eris.Wrap(err, "failed to stop spinner")
-		}
-
-		if f.subcommand == query {
-			err := f.query(result)
-			if err != nil{
-				return eris.Wrap(err, "failed to show query result")
-			}
-
+	choice, err := f.getChoice(result, spinner)
+	if err != nil{
+		if eris.Is(err, errs.ErrNoValue){
 			return nil
 		}
 
-		if (f.linksFlag || f.backlinksFlag) && (f.subcommand == edit || f.subcommand == view) {
-			switch len(links) {
-			case 0:
-				fmt.Println("No files match your query")
-			case 1:
-				choice = &links[0]
-			default:
-				choice, err = f.selectFile(links)
-				if err != nil {
-					return eris.Wrap(err, "failed to select file")
-				}
-			}
-		}
+		return eris.Wrap(err, "failed to get choice")
 	}
 
+	return f.openOrEdit(choice)
+}
+
+func (f *Find) openOrEdit(choice *models.File) error{
+
+
 	if f.subcommand == edit {
-		err = utils.EditFile(choice.Path)
+		err := utils.EditFile(choice.Path)
 		if err != nil {
 			return eris.Wrap(err, "failed to edit file")
 		}
@@ -233,7 +261,7 @@ func (f *Find) Run() error {
 	}
 
 	if f.subcommand == view {
-		err = viewNote(choice.Path)
+		err := viewNote(choice.Path)
 		if err != nil {
 			return eris.Wrap(err, "failed to view file")
 		}

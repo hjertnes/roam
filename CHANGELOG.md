@@ -1,4 +1,7 @@
 # Changelog
+## v0.3.10
+- Split up find
+- Added check to create to make sure it never overwrites anything
 ## v0.3.9
 - Moved TODO.md to my task manager
 - Added a EditFile method to utils and moved duplicated code from other places

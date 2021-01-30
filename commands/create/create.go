@@ -276,6 +276,10 @@ func (c *Create) createFile(fp, title string, templatedata []byte) error {
 	filepath := fmt.Sprintf("%s/%s", c.state.Path, fp)
 	now := time.Now()
 
+	if utilslib.FileExist(filepath) {
+		return eris.Wrap(errs.ErrDuplicate, "we never overwrite")
+	}
+
 	noteText := strings.ReplaceAll(string(templatedata), "$$TITLE$$", title)
 	noteText = strings.ReplaceAll(noteText, "$$DATE$$", now.Format(c.state.Conf.DateFormat))
 	noteText = strings.ReplaceAll(noteText, "$$TIME$$", now.Format(c.state.Conf.TimeFormat))
