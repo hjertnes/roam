@@ -42,10 +42,6 @@ func (d *Diagnostic) processFile(file *models.File) *models.Frontmatter{
 		return nil
 	}
 
-	if strings.Contains(metadata.Content, "\n\n") {
-		fmt.Printf("%s contains a lot of newlines after eachother\n", file.Path)
-	}
-
 	if strings.Split(metadata.Content, "\n")[0] != "---"{
 		fmt.Printf("%s the first line is not as expected", file.Path)
 

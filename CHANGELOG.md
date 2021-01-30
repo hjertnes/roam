@@ -1,6 +1,13 @@
 # Changelog
+## v0.3.9
+- Moved TODO.md to my task manager
+- Added a EditFile method to utils and moved duplicated code from other places
+- Removed newline check from diagnostic
+- Import: added feedback on how many notes imported
+- Import: dry run checks if files exist
+- Import: dry checks if the filename ends in .md
 ## v0.3.8
-- Added a warning if more than 5 min since last sync
+- Added a warning if more than 5 min since last syncx
 ## v0.3.7
 - Moved the creation of commands to a factory
 - Fixed some crashes 

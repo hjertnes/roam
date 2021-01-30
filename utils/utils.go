@@ -6,6 +6,7 @@ import (
 	"github.com/hjertnes/roam/errs"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -14,7 +15,19 @@ import (
 	"github.com/hjertnes/roam/models"
 	"github.com/rotisserie/eris"
 )
+func EditFile(path string) error {
+	editor := GetEditor()
+	cmd := exec.Command(editor, path) // #nosec G204
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		return eris.Wrap(err, "could not open file in editor")
+	}
 
+	return nil
+}
 func ErrorHandler(err error) {
 	if err != nil {
 		if eris.Is(err, errs.ErrNotFound) {

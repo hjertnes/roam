@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/ericaro/frontmatter"
 	"io/ioutil"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -225,7 +224,7 @@ func (f *Find) Run() error {
 	}
 
 	if f.subcommand == edit {
-		err = editNote(choice.Path)
+		err = utils.EditFile(choice.Path)
 		if err != nil {
 			return eris.Wrap(err, "failed to edit file")
 		}
@@ -240,18 +239,6 @@ func (f *Find) Run() error {
 		}
 
 		return nil
-	}
-
-	return nil
-}
-
-func editNote(path string) error {
-	editor := utils.GetEditor()
-	cmd := exec.Command(editor, path) // #nosec G204
-
-	err := cmd.Start()
-	if err != nil {
-		return eris.Wrap(err, "could not open file in editor")
 	}
 
 	return nil

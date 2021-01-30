@@ -8,7 +8,6 @@ import (
 	"github.com/hjertnes/roam/utils/pathutils"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
@@ -76,11 +75,7 @@ func (c *Create) CreateFile() error {
 		return eris.Wrap(err, "failed to create file")
 	}
 
-	editor := utils.GetEditor()
-
-	cmd := exec.Command(editor, fmt.Sprintf("%s/%s", c.state.Path, filepath)) // #nosec G204
-
-	err = cmd.Start()
+	err = utils.EditFile(fmt.Sprintf("%s/%s", c.state.Path, filepath))
 	if err != nil {
 		return eris.Wrap(err, "could not open file in EDITOR")
 	}
@@ -146,6 +141,8 @@ func (c *Create) doImport(file string, dryRun bool) error {
 	fileContent := make([]string, 0)
 	sepCounter := 0
 
+	counter := 0
+
 	for _, line := range importContent {
 		if line == "---" {
 			sepCounter++
@@ -160,6 +157,8 @@ func (c *Create) doImport(file string, dryRun bool) error {
 			fileContent = make([]string, 0)
 
 			sepCounter = 1
+
+			counter++
 		}
 
 		fileContent = append(fileContent, line)
@@ -169,6 +168,10 @@ func (c *Create) doImport(file string, dryRun bool) error {
 	if err != nil {
 		return eris.Wrap(err, "failed to import")
 	}
+
+	counter++
+
+	fmt.Printf("Imported %v notes\n", counter)
 
 	return nil
 }
@@ -228,6 +231,18 @@ func (c *Create) writeImport(fileContent []string, dryRun bool) error {
 		if err != nil {
 			return eris.Wrap(err, "failed to write file for import")
 		}
+	} else {
+		if utilslib.FileExist(fmt.Sprintf("%s/%s", c.state.Path, metadata.Path)) {
+			fmt.Printf("Filename %s exist\n", metadata.Path)
+		}
+
+		if !strings.HasSuffix(metadata.Path, ".md"){
+			fmt.Println("Path doesn't end in .md\n")
+		}
+
+		if strings.HasSuffix(metadata.Path, "/.md"){
+			fmt.Println("Path ends in /.md seems like you forgot a filename\n")
+		}
 	}
 
 	return nil
@@ -249,11 +264,7 @@ func (c *Create) daily(date string) error {
 		}
 	}
 
-	editor := utils.GetEditor()
-
-	cmd := exec.Command(editor, fullFilename) // #nosec G204
-
-	err := cmd.Start()
+	err := utils.EditFile(fullFilename)
 	if err != nil {
 		return eris.Wrap(err, "faield to editNote daily in editor")
 	}

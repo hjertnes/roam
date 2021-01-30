@@ -14,7 +14,6 @@ import (
 	"github.com/rotisserie/eris"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strings"
 )
 
@@ -118,10 +117,7 @@ func (t *Template) Add() error{
 		return eris.Wrap(err, "failed to write config")
 	}
 
-	editor := utils.GetEditor()
-	cmd := exec.Command(editor, filename) // #nosec G204
-
-	err = cmd.Start()
+	err = utils.EditFile(filename)
 	if err != nil {
 		return eris.Wrap(err, "could not open config in editor")
 	}
@@ -155,11 +151,8 @@ func (t *Template) Edit() error{
 		return eris.Wrap(err, "failed to get choice")
 	}
 
-	editor := utils.GetEditor()
 	file := fmt.Sprintf("%s/.config/templates/%s", t.state.Path, choice.Value)
-	cmd := exec.Command(editor, file) // #nosec G204
-
-	err = cmd.Start()
+	err = utils.EditFile(file)
 	if err != nil {
 		return eris.Wrap(err, "could not open config in editor")
 	}
