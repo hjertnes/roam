@@ -26,15 +26,6 @@ func New(s *state.State) *Create {
 	}
 }
 
-// Run runs the command and figures out what to do.
-/*
-
-
-
-
-
-*/
-
 func (c *Create) CreateFile(fp, title string, templatedata []byte) error {
 	filepath := fmt.Sprintf("%s/%s", c.state.Path, fp)
 	now := time.Now()

@@ -14,7 +14,6 @@ import (
 	"github.com/hjertnes/roam/commands/help"
 	iinit "github.com/hjertnes/roam/commands/init"
 	"github.com/hjertnes/roam/commands/migrate"
-	"github.com/hjertnes/roam/commands/publish"
 	"github.com/hjertnes/roam/commands/stats"
 	"github.com/hjertnes/roam/commands/version"
 )
@@ -52,7 +51,7 @@ func main() {
 	case "init":
 		utils.ErrorHandler(iinit.Run(path))
 	case "publish":
-		utils.ErrorHandler(publish.Run(path, os.Args))
+		utils.ErrorHandler(commandfactory.PublishCommand(path).Run())
 	case "diagnostic":
 		utils.ErrorHandler(commandfactory.DiagnosticCommand(path).Run())
 	case "config":

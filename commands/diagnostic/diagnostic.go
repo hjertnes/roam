@@ -42,12 +42,6 @@ func (d *Diagnostic) processFile(file *models.File) *models.Frontmatter{
 		return nil
 	}
 
-	if strings.Split(metadata.Content, "\n")[0] != "---"{
-		fmt.Printf("%s the first line is not as expected", file.Path)
-
-		return nil
-	}
-
 	return metadata
 }
 

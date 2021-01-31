@@ -7,6 +7,7 @@ import (
 	"github.com/hjertnes/roam/commands/daily"
 	"github.com/hjertnes/roam/commands/diagnostic"
 	"github.com/hjertnes/roam/commands/find"
+	"github.com/hjertnes/roam/commands/publish"
 	"github.com/hjertnes/roam/commands/report"
 	"github.com/hjertnes/roam/commands/sync"
 	"github.com/hjertnes/roam/commands/template"
@@ -23,6 +24,13 @@ func CreateFileCommand(path string) *createfile.CreateFile {
 
 func ImportCommand(path string) *bulkimport.Import {
 	c, err := bulkimport.New(path, os.Args)
+	utils.ErrorHandler(err)
+
+	return c
+}
+
+func PublishCommand(path string) *publish.Publish {
+	c, err := publish.New(path, os.Args)
 	utils.ErrorHandler(err)
 
 	return c

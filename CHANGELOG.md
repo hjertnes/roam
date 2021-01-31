@@ -1,4 +1,7 @@
 # Changelog
+## v0.3.12
+- Removed useless test from diagnostic
+- Re-written publish to not be a gigantic function
 ## v0.3.11
 - Broken up create 
 ## v0.3.10
